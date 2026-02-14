@@ -103,5 +103,21 @@
 讓產品功能的描述更完整
 ```
 
+- 執行
+```
+/speckit.specify 請參考 ref_specify.md
+```
 
+# Clarify
+
+```
+clarify
+```
+
+- 檢查User Story是否詳盡
+```
+根據 ref_specify.md
+幫我檢查specs\001-ref-specify\spec.md的User Story
+是否列的詳盡?若不詳盡，請補上User Story
+```
 
