@@ -27,11 +27,19 @@
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
+
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*GATE: 必須通過下列門檻，否則不得進入設計/開發階段。每次設計/實作後需重新檢查。*
 
-[Gates determined based on constitution file]
+- 技術棧：必須使用 React Native + TypeScript，所有元件/函式有明確型別。
+- 程式碼品質：單一職責、函式<50行、ESLint/Prettier 強制、禁止 Class 組件。
+- 測試：Jest+RNTL，TDD 覆蓋率（核心邏輯/工具）≥90%，自定義 Hook/資料處理/主要流程皆有測試。
+- 體驗一致性：Material Design 3、Android 原生感、輸入畫面≤300ms、離線可用、深/淺色切換。
+- 效能：首屏≤1s、列表60FPS、搜尋≤200ms、記憶體≤150MB。
+- 技術決策：輕量函式庫、第三方套件活躍維護、資料加密、GDPR。
+
+*如有例外，必須於 spec/plan/PR 明確說明並經審查同意。*
 
 ## Project Structure
 

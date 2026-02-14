@@ -5,7 +5,10 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+
 ## User Scenarios & Testing *(mandatory)*
+
+> **注意：每個 User Story/Acceptance Scenario 必須明確標註對應憲章原則（如：技術棧、品質、測試、體驗、效能、決策），並說明如何驗證型別安全、測試覆蓋率、效能門檻等。**
 
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.

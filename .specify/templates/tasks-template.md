@@ -3,7 +3,10 @@
 description: "Task list template for feature implementation"
 ---
 
+
 # Tasks: [FEATURE NAME]
+
+> **注意：每項任務必須標註對應憲章原則（如：技術棧、品質、測試、體驗、效能、決策），並明確說明型別安全、測試覆蓋、效能門檻等驗證方式。**
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
