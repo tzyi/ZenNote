@@ -10,9 +10,9 @@
 UI設計非常嚴格要求要跟照片一模一樣，請務必參考照片的UI來描述產品功能，描述的越清楚越好。
 
 
-# 1. 主畫面（UI參考 docs\ui\main.jpg）
- 時間流卡片設計：以 FlashList 垂直排列，時間倒序顯示，支援無限滾動。
- 卡片架構：
+# 1. 主畫面（UI設計要嚴格跟 docs\ui\main.jpg 一模一樣）
+- 時間流卡片設計：以 FlashList 垂直排列，時間倒序顯示，支援無限滾動。
+- 卡片架構：
     - 每張卡片含精確時間戳、內容預覽、標籤徽章（#TODO、#GitHubCopilot）、更多操作（...）。
     - 內容預覽預設顯示 5 行，超過部分以「展開」按鈕顯示全部內容。
     - 標籤徽章最多同時顯示 5 個，超過時以「+N」方式收斂顯示。
@@ -36,7 +36,7 @@ UI設計非常嚴格要求要跟照片一模一樣，請務必參考照片的UI�
 - 技術建議：FlashList 虛擬化列表、NativeWind 樣式、Reanimated 卡片滑動、Zustand 狀態管理。
 
 
-# 2. 文字編輯器（UI參考 docs\ui\editor.jpg）
+# 2. 文字編輯器（UI設計要嚴格跟 docs\ui\editor.jpg 一模一樣）
 工具列：
     - 預設顯示「標籤插入（#）」、「圖片上傳」、「粗體」三項功能，其他功能可放進進階選單。
     - 多張圖片可拖曳排序，順序可任意調整。
@@ -66,7 +66,7 @@ UI設計非常嚴格要求要跟照片一模一樣，請務必參考照片的UI�
 - 技術建議：react-native-markdown-editor、KeyboardAvoidingView、AsyncStorage 草稿暫存、gorhom/bottom-sheet。
 
 
-# 3. 搜尋頁面（UI參考 docs\ui\search.jpg）
+# 3. 搜尋頁面（UI設計要嚴格跟 docs\ui\search.jpg 一模一樣）
     - 輸入 >3 字即顯示結果，空格分隔多關鍵字 AND 搜尋。
     - 點擊篩選更新列表（動畫過渡）。
     - 無結果顯示提示。
@@ -85,7 +85,7 @@ UI設計非常嚴格要求要跟照片一模一樣，請務必參考照片的UI�
 - 技術建議：SQLite + FTS5 全文搜尋、Zustand 搜尋狀態、Reanimated 過渡動畫、DateTimePicker。
 
 
-# 4. 左邊側邊欄（UI參考 docs\ui\left_side.jpg）
+# 4. 左邊側邊欄（UI設計要嚴格跟 docs\ui\left_side.jpg 一模一樣）
 - 個人看板屬性：整合使用者統計與導航管理。
 - 底部熱力圖與統計：
     - GitHub 格狀熱力圖，僅視覺展示，不支援點擊，顏色深淺代表當日筆記數量。
@@ -106,7 +106,7 @@ UI設計非常嚴格要求要跟照片一模一樣，請務必參考照片的UI�
 - 技術建議：GestureHandler 側邊欄、NativeWind 樣式、Zustand 狀態管理。
 
 
-# 5. 設定頁面（UI參考 docs\ui\settings.jpg）
+# 5. 設定頁面（UI設計要嚴格跟 docs\ui\settings.jpg 一模一樣）
 - 主題選擇：深色/淺色主題切換，跟隨系統設定。
 
 - 資料管理：
