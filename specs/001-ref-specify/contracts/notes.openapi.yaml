@@ -1,0 +1,98 @@
+openapi: 3.0.0
+info:
+  title: Notes API (Local)
+  version: 1.0.0
+paths:
+  /notes:
+    get:
+      summary: 取得所有筆記
+      responses:
+        '200':
+          description: 筆記列表
+    post:
+      summary: 新增筆記
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Note'
+      responses:
+        '201':
+          description: 新增成功
+  /notes/{id}:
+    get:
+      summary: 取得單一筆記
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 筆記內容
+    put:
+      summary: 更新筆記
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Note'
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      summary: 刪除筆記（移至回收桶）
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 已刪除
+components:
+  schemas:
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        createdAt:
+          type: integer
+        updatedAt:
+          type: integer
+        deletedAt:
+          type: integer
+        inRecycleBin:
+          type: boolean
+        recycleRemainDays:
+          type: integer
+    Image:
+      type: object
+      properties:
+        id:
+          type: string
+        noteId:
+          type: string
+        uri:
+          type: string
+        order:
+          type: integer
