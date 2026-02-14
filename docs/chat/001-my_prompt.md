@@ -77,7 +77,7 @@
 
 # specify
 
-- 跟AI討論，產生specify.md
+- 跟AI討論，產生ref_specify.md
 ```
 你是一位UI UX專家，已經Github copilot與spec kit專家
 我想要使用react Native打造一個Android APP
@@ -91,6 +91,16 @@
 描述的越清楚越好
 
 提示詞請用繁體中文
+```
+
+- 釐清
+```
+你是一位PM
+參考docs\ui\main.jpg
+思考主畫面有什麼功能需要釐清的嗎?
+請用問答的方式詢問我，並且給我選項選擇
+最後幫我修改ref_specify.md
+讓產品功能的描述更完整
 ```
 
 
