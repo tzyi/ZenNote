@@ -5,12 +5,19 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Switch,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
+import {
+  ExportPanel,
+  ImportPanel,
+  BackupPanel,
+  RecycleBinManager,
+  ResetPanel,
+  AboutPanel,
+} from '../src/components';
 import { useColors, useTheme } from '../src/theme';
 import { useNotesStore, useSettingsStore } from '../src/store';
 import { ThemeMode } from '../src/models';
@@ -69,28 +76,12 @@ export default function SettingsScreen() {
   const navigation = useNavigation();
   const { theme, themeMode, setThemeMode } = useTheme();
   const { settings, setTheme: setSettingsTheme } = useSettingsStore();
-  const { clearRecycleBin, notes } = useNotesStore();
-
-  const recycleBinCount = notes.filter((n) => n.inRecycleBin).length;
+  const { notes } = useNotesStore();
+  const [showRecycleBin, setShowRecycleBin] = useState(false);
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     setSettingsTheme(mode);
-  };
-
-  const handleClearRecycleBin = () => {
-    Alert.alert(
-      '清空回收桶',
-      `確定要永久刪除回收桶中的 ${recycleBinCount} 筆筆記嗎？此操作無法復原。`,
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '清空',
-          style: 'destructive',
-          onPress: clearRecycleBin,
-        },
-      ]
-    );
   };
 
   const themeOptions: { label: string; value: ThemeMode; icon: string }[] = [
@@ -118,10 +109,10 @@ export default function SettingsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
-        {/* Theme section */}
+        {/* Theme section (T044) */}
         <SectionHeader title="外觀" />
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {themeOptions.map((opt, index) => (
+          {themeOptions.map((opt) => (
             <SettingsRow
               key={opt.value}
               icon={opt.icon}
@@ -136,82 +127,61 @@ export default function SettingsScreen() {
           ))}
         </View>
 
-        {/* Data management */}
+        {/* Data export/import (T045, T046) */}
         <SectionHeader title="資料管理" />
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <SettingsRow
-            icon="📤"
-            label="匯出全部筆記"
-            subtitle="匯出為 .zip（含 Markdown 與圖片）"
-            onPress={() => Alert.alert('即將推出', '批次匯出功能正在開發中')}
-          />
-          <SettingsRow
-            icon="📥"
-            label="匯入筆記"
-            subtitle="支援 .zip 或 Markdown 格式"
-            onPress={() => Alert.alert('即將推出', '匯入功能正在開發中')}
-          />
-          <SettingsRow
-            icon="💾"
-            label="本地備份"
-            onPress={() => Alert.alert('即將推出', '本地備份功能正在開發中')}
-          />
-          <SettingsRow
-            icon="♻️"
-            label="還原備份"
-            onPress={() => Alert.alert('即將推出', '還原備份功能正在開發中')}
-          />
+          <View style={styles.panelRow}>
+            <ExportPanel />
+          </View>
+          <View style={[styles.panelRow, { borderTopWidth: 1, borderTopColor: colors.divider }]}>
+            <ImportPanel />
+          </View>
         </View>
 
-        {/* Recycle bin */}
+        {/* Backup (T048) */}
+        <SectionHeader title="備份" />
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.panelRow}>
+            <BackupPanel />
+          </View>
+        </View>
+
+        {/* Recycle bin inline manager (T047) */}
         <SectionHeader title="回收桶" />
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <SettingsRow
-            icon="🗑"
-            label="管理回收桶"
-            subtitle={`${recycleBinCount} 篇待刪除`}
-            onPress={() => Alert.alert('即將推出', '回收桶管理功能正在開發中')}
-          />
-          <SettingsRow
-            icon="🧹"
-            label="清空回收桶"
-            destructive
-            subtitle={recycleBinCount > 0 ? `將永久刪除 ${recycleBinCount} 篇筆記` : '回收桶為空'}
-            onPress={recycleBinCount > 0 ? handleClearRecycleBin : undefined}
-          />
+          <TouchableOpacity
+            style={styles.toggleRow}
+            onPress={() => setShowRecycleBin((p) => !p)}
+          >
+            <Text style={styles.rowIcon}>🗑</Text>
+            <Text style={[styles.rowLabel, { color: colors.textPrimary, flex: 1 }]}>
+              管理回收桶
+            </Text>
+            <Text style={[styles.chevron, { color: colors.textMuted }]}>
+              {showRecycleBin ? '▲' : '▼'}
+            </Text>
+          </TouchableOpacity>
+          {showRecycleBin && (
+            <View style={[styles.panelRow, { borderTopWidth: 1, borderTopColor: colors.divider }]}>
+              <RecycleBinManager />
+            </View>
+          )}
         </View>
 
-        {/* Danger zone */}
+        {/* Reset (T049) */}
         <SectionHeader title="危險操作" />
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <SettingsRow
-            icon="⚠️"
-            label="一鍵重設"
-            destructive
-            subtitle="清除所有資料，恢復初始狀態"
-            onPress={() => {
-              Alert.alert(
-                '一鍵重設',
-                '確定要清除所有資料嗎？此操作無法復原。',
-                [
-                  { text: '取消', style: 'cancel' },
-                  { text: '重設', style: 'destructive', onPress: () => undefined },
-                ]
-              );
-            }}
-          />
+          <View style={styles.panelRow}>
+            <ResetPanel />
+          </View>
         </View>
 
-        {/* About */}
+        {/* About (T050) */}
         <SectionHeader title="關於" />
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <SettingsRow
-            icon="ℹ️"
-            label="版本"
-            rightElement={
-              <Text style={[styles.versionText, { color: colors.textMuted }]}>1.0.0</Text>
-            }
-          />
+          <View style={styles.panelRow}>
+            <AboutPanel />
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -293,8 +263,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '300',
   },
-  versionText: {
-    fontSize: 14,
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  panelRow: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   footer: {
     alignItems: 'center',

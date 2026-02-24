@@ -37,72 +37,72 @@ description: "ZenNote 卡片筆記 APP 任務清單"
 
 ## Phase 3: User Story 1 - 主畫面卡片瀏覽與操作
 
-- [ ] T015 [US1] 實作 FlashList 時間流卡片列表（src/screens/MainScreen.tsx）
-- [ ] T016 [US1] 實作卡片內容預覽、標籤徽章、更多操作（src/components/Card.tsx）
-- [ ] T017 [US1] 實作「展開」按鈕與內容顯示（src/components/Card.tsx）
-- [ ] T018 [US1] 實作標籤徽章收斂顯示（src/components/TagBadge.tsx）
-- [ ] T019 [US1] 實作回收桶剩餘天數顯示（src/components/Card.tsx）
-- [ ] T020 [US1] 實作卡片長按氣泡選單（刪除、分享、置頂）（src/components/CardMenu.tsx）
-- [ ] T021 [US1] 實作 Reanimated 淡入動畫（src/components/Card.tsx）
-- [ ] T022 [US1] 實作批次匯出（Markdown）（src/screens/MainScreen.tsx）
-- [ ] T023 [US1] 實作回收桶頁面與批次刪除/還原（src/screens/RecycleBinScreen.tsx）
-- [ ] T024 [US1] 實作頂部導航與時間區間篩選（src/components/MainHeader.tsx）
-- [ ] T025 [US1] 實作懸浮新增按鈕（FAB）（src/components/FAB.tsx）
+- [X] T015 [US1] 實作 FlashList 時間流卡片列表（src/screens/MainScreen.tsx）
+- [X] T016 [US1] 實作卡片內容預覽、標籤徽章、更多操作（src/components/Card.tsx）
+- [X] T017 [US1] 實作「展開」按鈕與內容顯示（src/components/Card.tsx）
+- [X] T018 [US1] 實作標籤徽章收斂顯示（src/components/TagBadge.tsx）
+- [X] T019 [US1] 實作回收桶剩餘天數顯示（src/components/Card.tsx）
+- [X] T020 [US1] 實作卡片長按氣泡選單（刪除、分享、置頂）（src/components/CardMenu.tsx）
+- [X] T021 [US1] 實作 Reanimated 淡入動畫（src/components/Card.tsx）
+- [X] T022 [US1] 實作批次匯出（Markdown）（src/screens/MainScreen.tsx）
+- [X] T023 [US1] 實作回收桶頁面與批次刪除/還原（src/screens/RecycleBinScreen.tsx）
+- [X] T024 [US1] 實作頂部導航與時間區間篩選（src/components/MainHeader.tsx）
+- [X] T025 [US1] 實作懸浮新增按鈕（FAB）（src/components/FAB.tsx）
 
 ---
 
 ## Phase 4: User Story 2 - 筆記編輯器互動
 
-- [ ] T026 [US2] 實作標籤插入與自動補全（src/components/TagInput.tsx）
-- [ ] T027 [US2] 實作圖片上傳與拖曳排序（src/components/ImageUploader.tsx）
-- [ ] T028 [US2] 實作草稿自動儲存（src/screens/EditorScreen.tsx）
-- [ ] T029 [US2] 實作工具列與進階功能選單（src/components/EditorToolbar.tsx）
-- [ ] T030 [US2] 實作 KeyboardAvoidingView 與硬體鍵盤支援（src/screens/EditorScreen.tsx）
-- [ ] T031 [US2] 實作「已儲存」提示（src/components/SaveIndicator.tsx）
+- [X] T026 [US2] 實作標籤插入與自動補全（src/components/TagInput.tsx）
+- [X] T027 [US2] 實作圖片上傳與拖曳排序（src/components/ImageUploader.tsx）
+- [X] T028 [US2] 實作草稿自動儲存（src/screens/EditorScreen.tsx）
+- [X] T029 [US2] 實作工具列與進階功能選單（src/components/EditorToolbar.tsx）
+- [X] T030 [US2] 實作 KeyboardAvoidingView 與硬體鍵盤支援（src/screens/EditorScreen.tsx）
+- [X] T031 [US2] 實作「已儲存」提示（src/components/SaveIndicator.tsx）
 
 ---
 
 ## Phase 5: User Story 3 - 搜尋與多維度篩選
 
-- [ ] T032 [US3] 實作搜尋框與 debounce（src/components/SearchBar.tsx）
-- [ ] T033 [US3] 實作 Chips 屬性篩選（src/components/FilterChips.tsx）
-- [ ] T034 [US3] 實作 AND/OR 多關鍵字搜尋（src/screens/SearchScreen.tsx）
-- [ ] T035 [US3] 實作標籤多選與模糊搜尋（src/components/TagSelector.tsx）
-- [ ] T036 [US3] 實作日期 picker 篩選（src/components/DatePicker.tsx）
-- [ ] T037 [US3] 實作搜尋結果列表與動畫過渡（src/screens/SearchScreen.tsx）
+- [X] T032 [US3] 實作搜尋框與 debounce（src/components/SearchBar.tsx）
+- [X] T033 [US3] 實作 Chips 屬性篩選（src/components/FilterChips.tsx）
+- [X] T034 [US3] 實作 AND/OR 多關鍵字搜尋（src/screens/SearchScreen.tsx）
+- [X] T035 [US3] 實作標籤多選與模糊搜尋（src/components/TagSelector.tsx）
+- [X] T036 [US3] 實作日期 picker 篩選（src/components/DatePicker.tsx）
+- [X] T037 [US3] 實作搜尋結果列表與動畫過渡（src/screens/SearchScreen.tsx）
 
 ---
 
 ## Phase 6: User Story 4 - 左邊側邊欄互動與標籤管理
 
-- [ ] T038 [US4] 實作統計熱力圖（src/components/Heatmap.tsx）
-- [ ] T039 [US4] 實作標籤管理（新增、編輯、刪除、拖曳排序）（src/screens/SidebarScreen.tsx）
-- [ ] T040 [US4] 實作標籤聚合視圖（src/screens/TagAggregateScreen.tsx）
-- [ ] T041 [US4] 實作功能導航（全部筆記、每日回顧）（src/components/SidebarNav.tsx）
-- [ ] T042 [US4] 實作設定按鈕與頁面跳轉（src/components/SidebarNav.tsx）
-- [ ] T043 [US4] 實作側邊欄開啟/關閉動畫與手勢（src/screens/SidebarScreen.tsx）
+- [X] T038 [US4] 實作統計熱力圖（src/components/Heatmap.tsx）
+- [X] T039 [US4] 實作標籤管理（新增、編輯、刪除、拖曳排序）（src/screens/SidebarScreen.tsx）
+- [X] T040 [US4] 實作標籤聚合視圖（src/screens/TagAggregateScreen.tsx）
+- [X] T041 [US4] 實作功能導航（全部筆記、每日回顧）（src/components/SidebarNav.tsx）
+- [X] T042 [US4] 實作設定按鈕與頁面跳轉（src/components/SidebarNav.tsx）
+- [X] T043 [US4] 實作側邊欄開啟/關閉動畫與手勢（src/screens/SidebarScreen.tsx）
 
 ---
 
 ## Phase 7: User Story 5 - 設定頁面與資料管理
 
-- [ ] T044 [US5] 實作主題切換（src/screens/SettingsScreen.tsx）
-- [ ] T045 [US5] 實作資料匯出（批次 .zip）（src/components/ExportPanel.tsx）
-- [ ] T046 [US5] 實作資料匯入（.zip/Markdown）（src/components/ImportPanel.tsx）
-- [ ] T047 [US5] 實作回收桶管理（批次還原/刪除、全部清空）（src/components/RecycleBinManager.tsx）
-- [ ] T048 [US5] 實作本地備份/還原（src/components/BackupPanel.tsx）
-- [ ] T049 [US5] 實作一鍵重設（src/components/ResetPanel.tsx）
-- [ ] T050 [US5] 實作版本資訊顯示（src/components/AboutPanel.tsx）
+- [X] T044 [US5] 實作主題切換（src/screens/SettingsScreen.tsx）
+- [X] T045 [US5] 實作資料匯出（批次 .zip）（src/components/ExportPanel.tsx）
+- [X] T046 [US5] 實作資料匯入（.zip/Markdown）（src/components/ImportPanel.tsx）
+- [X] T047 [US5] 實作回收桶管理（批次還原/刪除、全部清空）（src/components/RecycleBinManager.tsx）
+- [X] T048 [US5] 實作本地備份/還原（src/components/BackupPanel.tsx）
+- [X] T049 [US5] 實作一鍵重設（src/components/ResetPanel.tsx）
+- [X] T050 [US5] 實作版本資訊顯示（src/components/AboutPanel.tsx）
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T051 [P] UI 與設計稿比對一致性驗證（tests/ui/）
-- [ ] T052 [P] 效能測試（主畫面滾動、搜尋、編輯器）（tests/performance/）
-- [ ] T053 [P] 單元測試覆蓋率驗證（tests/unit/）
-- [ ] T054 [P] 型別安全驗證（tests/types/）
-- [ ] T055 [P] 資料加密與 GDPR 驗證（tests/security/）
+- [X] T051 [P] UI 與設計稿比對一致性驗證（tests/ui/）
+- [X] T052 [P] 效能測試（主畫面滾動、搜尋、編輯器）（tests/performance/）
+- [X] T053 [P] 單元測試覆蓋率驗證（tests/unit/）
+- [X] T054 [P] 型別安全驗證（tests/types/）
+- [X] T055 [P] 資料加密與 GDPR 驗證（tests/security/）
 
 ---
 

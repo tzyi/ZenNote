@@ -173,5 +173,5 @@ UI完成後再來實作所有功能，功能的部分請參考spec.md以及ref_s
 
 # implement
 ```
-/speckit.implement UI樣式請參考 docs/ui/*.jpg，且先實作specs\001-ref-specify\tasks.md中的T001~T014，共14個任務，14個任務完成才可以停止實作階段。
+/speckit.implement UI樣式請參考 docs/ui/*.jpg，且先實作specs\001-ref-specify\tasks.md中的T015~T055任務，共41個任務，41個任務完成才可以停止實作階段。
 ```

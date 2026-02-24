@@ -12,9 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-import { EditorToolbar, SaveIndicator, TagBadge } from '../src/components';
+import { EditorToolbar, SaveIndicator, TagInput, ImageUploader } from '../src/components';
 import { useColors } from '../src/theme';
 import { useNotesStore } from '../src/store';
+import { NoteImage } from '../src/models';
 import type { RootStackScreenProps } from '../src/navigation/types';
 
 type RouteProps = RootStackScreenProps<'Editor'>['route'];
@@ -34,32 +35,36 @@ export default function EditorScreen() {
 
   const [content, setContent] = useState(existingNote?.content ?? '');
   const [tags, setTags] = useState<string[]>(existingNote?.tags ?? []);
-  const [tagInput, setTagInput] = useState('');
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [images, setImages] = useState<NoteImage[]>(existingNote?.images ?? []);
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showImages, setShowImages] = useState(false);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef(content);
   const tagsRef = useRef(tags);
+  const imagesRef = useRef(images);
+  const inputRef = useRef<TextInput>(null);
 
   contentRef.current = content;
   tagsRef.current = tags;
+  imagesRef.current = images;
 
   const saveNote = useCallback(() => {
     const c = contentRef.current.trim();
     const t = tagsRef.current;
+    const imgs = imagesRef.current;
     if (!c) return;
 
     setIsSaving(true);
     if (noteId && existingNote) {
-      updateNote(noteId, { content: c, tags: t });
+      updateNote(noteId, { content: c, tags: t, images: imgs });
     } else {
       addNote({
         id: generateId(),
         content: c,
         tags: t,
-        images: [],
+        images: imgs,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         inRecycleBin: false,
@@ -69,9 +74,13 @@ export default function EditorScreen() {
     setSaved(true);
   }, [noteId, existingNote, addNote, updateNote]);
 
-  // Auto-save with 5s debounce
+  // Auto-save with 5s debounce (T028)
   useEffect(() => {
-    if (content !== (existingNote?.content ?? '')) {
+    const hasContentChange = content !== (existingNote?.content ?? '');
+    const hasTagChange = JSON.stringify(tags) !== JSON.stringify(existingNote?.tags ?? []);
+    const hasImageChange = JSON.stringify(images) !== JSON.stringify(existingNote?.images ?? []);
+
+    if (hasContentChange || hasTagChange || hasImageChange) {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       setSaved(false);
       saveTimerRef.current = setTimeout(saveNote, 5000);
@@ -79,25 +88,29 @@ export default function EditorScreen() {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [content, saveNote, existingNote?.content]);
-
-  const handleAddTag = () => {
-    const trimmed = tagInput.trim().replace(/^#+/, '');
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags((prev) => [...prev, trimmed]);
-    }
-    setTagInput('');
-    setShowTagSuggestions(false);
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setTags((prev) => prev.filter((t) => t !== tag));
-  };
+  }, [content, tags, images, saveNote, existingNote]);
 
   const handleClose = () => {
     saveNote();
     navigation.goBack();
   };
+
+  // Toolbar handlers (T029)
+  const handleInsertBold = useCallback(() => {
+    setContent((prev) => prev + '**粗體文字**');
+  }, []);
+
+  const handleInsertHeading = useCallback(() => {
+    setContent((prev) => prev + '\n## 標題\n');
+  }, []);
+
+  const handleInsertList = useCallback(() => {
+    setContent((prev) => prev + '\n- 項目\n');
+  }, []);
+
+  const handleInsertDivider = useCallback(() => {
+    setContent((prev) => prev + '\n---\n');
+  }, []);
 
   return (
     <SafeAreaView
@@ -117,18 +130,21 @@ export default function EditorScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* KeyboardAvoidingView with hardware keyboard support (T030) */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       >
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
         >
           {/* Main text input */}
           <TextInput
+            ref={inputRef}
             style={[styles.textInput, { color: colors.textPrimary }]}
             value={content}
             onChangeText={setContent}
@@ -140,38 +156,31 @@ export default function EditorScreen() {
             selectionColor={colors.accentGreen}
           />
 
-          {/* Tags section */}
-          <View style={[styles.tagsSection, { borderTopColor: colors.divider }]}>
-            <View style={styles.tagsRow}>
-              {tags.map((tag) => (
-                <TouchableOpacity key={tag} onLongPress={() => handleRemoveTag(tag)}>
-                  <TagBadge label={tag} variant="active" />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Tag input */}
-            <View style={styles.tagInputRow}>
-              <TextInput
-                style={[styles.tagInput, { color: colors.textPrimary, borderColor: colors.border }]}
-                value={tagInput}
-                onChangeText={(text) => {
-                  setTagInput(text);
-                  setShowTagSuggestions(text.length > 0);
-                }}
-                onSubmitEditing={handleAddTag}
-                placeholder="#新增標籤"
-                placeholderTextColor={colors.placeholder}
-                returnKeyType="done"
+          {/* Image uploader section (T027) */}
+          {showImages && (
+            <View style={[styles.imageSection, { borderTopColor: colors.divider }]}>
+              <ImageUploader
+                images={images}
+                onImagesChange={setImages}
+                noteId={noteId ?? generateId()}
               />
             </View>
+          )}
+
+          {/* Tags section using TagInput (T026) */}
+          <View style={[styles.tagsSection, { borderTopColor: colors.divider }]}>
+            <TagInput tags={tags} onTagsChange={setTags} />
           </View>
         </ScrollView>
 
-        {/* Toolbar */}
+        {/* Enhanced Toolbar (T029) */}
         <EditorToolbar
-          onTagPress={() => setTagInput('#')}
-          onImagePress={() => undefined}
+          onTagPress={() => inputRef.current?.blur()}
+          onImagePress={() => setShowImages((prev) => !prev)}
+          onBoldPress={handleInsertBold}
+          onHeadingPress={handleInsertHeading}
+          onListPress={handleInsertList}
+          onDividerPress={handleInsertDivider}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -212,26 +221,14 @@ const styles = StyleSheet.create({
     minHeight: 200,
     textAlignVertical: 'top',
   },
-  tagsSection: {
+  imageSection: {
     paddingTop: 12,
     marginTop: 12,
     borderTopWidth: 1,
   },
-  tagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 8,
-  },
-  tagInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  tagInput: {
-    flex: 1,
-    fontSize: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
+  tagsSection: {
+    paddingTop: 12,
+    marginTop: 12,
+    borderTopWidth: 1,
   },
 });

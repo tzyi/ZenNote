@@ -12,6 +12,8 @@ import EditorScreen from '../../screens/EditorScreen';
 import SearchScreen from '../../screens/SearchScreen';
 import SettingsScreen from '../../screens/SettingsScreen';
 import SidebarScreen from '../../screens/SidebarScreen';
+import RecycleBinScreen from '../../screens/RecycleBinScreen';
+import TagAggregateScreen from '../../screens/TagAggregateScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -84,8 +86,8 @@ export function RootNavigator() {
           component={EditorScreen}
           options={{ animation: 'slide_from_bottom', presentation: 'modal' }}
         />
-        <Stack.Screen name="RecycleBin" component={MainScreen} />
-        <Stack.Screen name="TagAggregate" component={MainScreen} />
+        <Stack.Screen name="RecycleBin" component={RecycleBinScreen} />
+        <Stack.Screen name="TagAggregate" component={TagAggregateScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

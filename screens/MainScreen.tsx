@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  Alert,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ import { Card, CardMenu, CardMenuAction, FAB, MainHeader } from '../src/componen
 import { useColors } from '../src/theme';
 import { useNotesStore } from '../src/store';
 import { Note } from '../src/models';
+import { ExportService } from '../src/services/exportService';
 import type { RootStackNavigationProp } from '../src/navigation/types';
 
 type TimeFilter = 'all' | 'today' | 'week' | 'month';
@@ -105,10 +107,33 @@ export default function MainScreen() {
         {
           icon: '↗️',
           label: '分享',
-          onPress: () => undefined,
+          onPress: () => {
+            if (selectedNote) {
+              ExportService.shareNote(selectedNote);
+            }
+          },
         },
       ]
     : [];
+
+  const handleBatchExport = useCallback(() => {
+    const activeNotes = notes.filter((n) => !n.inRecycleBin);
+    if (activeNotes.length === 0) {
+      Alert.alert('無筆記', '沒有可匯出的筆記');
+      return;
+    }
+    Alert.alert(
+      '批次匯出',
+      `將匯出 ${activeNotes.length} 篇筆記為 Markdown 格式`,
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '匯出',
+          onPress: () => ExportService.shareNotes(activeNotes),
+        },
+      ]
+    );
+  }, [notes]);
 
   const renderItem = useCallback(
     ({ item }: { item: ListItem }) => {
@@ -147,6 +172,7 @@ export default function MainScreen() {
         data={listItems}
         renderItem={renderItem}
         keyExtractor={(item) => item.key}
+        estimatedItemSize={120}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
@@ -161,6 +187,7 @@ export default function MainScreen() {
 
       <FAB
         onPress={() => navigation.navigate('Editor')}
+        onLongPress={handleBatchExport}
         style={styles.fab}
       />
 

@@ -4,12 +4,13 @@ import { useColors } from '../theme';
 
 interface FABProps {
   onPress: () => void;
+  onLongPress?: () => void;
   icon?: string;
   style?: ViewStyle;
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function FAB({ onPress, icon = '+', style, size = 'md' }: FABProps) {
+export function FAB({ onPress, onLongPress, icon = '+', style, size = 'md' }: FABProps) {
   const colors = useColors();
 
   const dimensions = { sm: 44, md: 56, lg: 64 }[size];
@@ -18,6 +19,7 @@ export function FAB({ onPress, icon = '+', style, size = 'md' }: FABProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
+      onLongPress={onLongPress}
       activeOpacity={0.85}
       style={[
         styles.fab,
