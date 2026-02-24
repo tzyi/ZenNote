@@ -169,3 +169,9 @@ clarify
 並且UI 需與 docs/ui/*.jpg 完全一致來實作，不能有任何差異。
 UI完成後再來實作所有功能，功能的部分請參考spec.md以及ref_specify.md
 ```
+
+
+# implement
+```
+/speckit.implement UI樣式請參考 docs/ui/*.jpg，且先實作specs\001-ref-specify\tasks.md中的T001~T014，共14個任務，14個任務完成才可以停止實作階段。
+```

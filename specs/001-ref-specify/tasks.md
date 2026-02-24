@@ -13,25 +13,25 @@ description: "ZenNote 卡片筆記 APP 任務清單"
 
 ## Phase 1: Setup
 
-- [ ] T001 建立 src/ 與 screens/ 目錄結構
-- [ ] T002 安裝 React Native、TypeScript、Zustand、AsyncStorage、NativeWind、Reanimated 等依賴（package.json）
-- [ ] T003 設定 ESLint、Prettier、Jest、React Native Testing Library（根目錄）
-- [ ] T004 設定 tsconfig.json 型別安全規則
-- [ ] T005 設定 Android 專案啟動與模擬器環境
+- [X] T001 建立 src/ 與 screens/ 目錄結構
+- [X] T002 安裝 React Native、TypeScript、Zustand、AsyncStorage、NativeWind、Reanimated 等依賴（package.json）
+- [X] T003 設定 ESLint、Prettier、Jest、React Native Testing Library（根目錄）
+- [X] T004 設定 tsconfig.json 型別安全規則
+- [X] T005 設定 Android 專案啟動與模擬器環境
 
 ---
 
 ## Phase 2: Foundational
 
-- [ ] T006 建立 screens/MainScreen.tsx（主畫面 UI）
-- [ ] T007 建立 screens/EditorScreen.tsx（文字編輯器 UI）
-- [ ] T008 建立 screens/SearchScreen.tsx（搜尋頁面 UI）
-- [ ] T009 建立 screens/SidebarScreen.tsx（左側側邊欄 UI）
-- [ ] T010 建立 screens/SettingsScreen.tsx（設定頁面 UI）
-- [ ] T011 [P] 建立 assets/ui/ 並導入 main.jpg、editor.jpg、search.jpg、left_side.jpg、settings.jpg
-- [ ] T012 [P] 設計 UI 元件庫（src/components/）並建立 Card、TagBadge、FAB、Sidebar、SearchBar、SettingsPanel 等元件
-- [ ] T013 [P] 設計主題切換（深色/淺色）機制（src/theme/）
-- [ ] T014 [P] 設計 Navigation 結構（src/navigation/）
+- [X] T006 建立 screens/MainScreen.tsx（主畫面 UI）
+- [X] T007 建立 screens/EditorScreen.tsx（文字編輯器 UI）
+- [X] T008 建立 screens/SearchScreen.tsx（搜尋頁面 UI）
+- [X] T009 建立 screens/SidebarScreen.tsx（左側側邊欄 UI）
+- [X] T010 建立 screens/SettingsScreen.tsx（設定頁面 UI）
+- [X] T011 [P] 建立 assets/ui/ 並導入 main.jpg、editor.jpg、search.jpg、left_side.jpg、settings.jpg
+- [X] T012 [P] 設計 UI 元件庫（src/components/）並建立 Card、TagBadge、FAB、Sidebar、SearchBar、SettingsPanel 等元件
+- [X] T013 [P] 設計主題切換（深色/淺色）機制（src/theme/）
+- [X] T014 [P] 設計 Navigation 結構（src/navigation/）
 
 ---
 

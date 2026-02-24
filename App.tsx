@@ -1,20 +1,36 @@
+import './global.css';
+
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+
+import { ThemeProvider, useTheme } from './src/theme';
+import { RootNavigator } from './src/navigation';
+
+function AppContent() {
+  const { theme } = useTheme();
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <StatusBar style={theme.mode === 'dark' ? 'light' : 'dark'} />
+        <RootNavigator />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!!!!!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
+

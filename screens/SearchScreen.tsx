@@ -1,0 +1,228 @@
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+
+import { SearchBar, FilterChips, FilterChip, Card } from '../src/components';
+import { useColors } from '../src/theme';
+import { useNotesStore } from '../src/store';
+import { Note } from '../src/models';
+import type { RootStackNavigationProp } from '../src/navigation/types';
+
+type LogicMode = 'AND' | 'OR';
+
+const FILTER_CHIPS: FilterChip[] = [
+  { id: 'has-image', label: '有圖片', icon: '🖼' },
+  { id: 'has-tag', label: '有標籤', icon: '🏷' },
+  { id: 'pinned', label: '已置頂', icon: '📌' },
+];
+
+function searchNotes(
+  notes: Note[],
+  query: string,
+  activeChips: string[],
+  logicMode: LogicMode
+): Note[] {
+  let result = notes.filter((n) => !n.inRecycleBin);
+
+  // Chip filters
+  if (activeChips.includes('has-image')) {
+    result = result.filter((n) => n.images.length > 0);
+  }
+  if (activeChips.includes('has-tag')) {
+    result = result.filter((n) => n.tags.length > 0);
+  }
+  if (activeChips.includes('pinned')) {
+    result = result.filter((n) => n.isPinned);
+  }
+
+  // Text search
+  if (!query.trim()) return result;
+
+  const keywords = query.trim().toLowerCase().split(/\s+/);
+
+  return result.filter((n) => {
+    const text = `${n.content} ${n.tags.join(' ')}`.toLowerCase();
+    if (logicMode === 'AND') {
+      return keywords.every((kw) => text.includes(kw));
+    }
+    return keywords.some((kw) => text.includes(kw));
+  });
+}
+
+export default function SearchScreen() {
+  const colors = useColors();
+  const navigation = useNavigation<RootStackNavigationProp>();
+  const { notes } = useNotesStore();
+  const [query, setQuery] = useState('');
+  const [activeChips, setActiveChips] = useState<string[]>([]);
+  const [logicMode, setLogicMode] = useState<LogicMode>('AND');
+
+  const results = useMemo(
+    () => searchNotes(notes, query, activeChips, logicMode),
+    [notes, query, activeChips, logicMode]
+  );
+
+  const toggleChip = useCallback((id: string) => {
+    setActiveChips((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Note }) => (
+      <Card
+        note={item}
+        onPress={() => navigation.navigate('Editor', { noteId: item.id })}
+        onLongPress={() => undefined}
+      />
+    ),
+    [navigation]
+  );
+
+  return (
+    <SafeAreaView
+      style={[styles.root, { backgroundColor: colors.background }]}
+      edges={['top', 'left', 'right']}
+    >
+      {/* Header with back */}
+      <View style={[styles.header, { borderBottomColor: colors.divider }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={[styles.back, { color: colors.textSecondary }]}>‹</Text>
+        </TouchableOpacity>
+        <View style={styles.searchBarWrap}>
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="搜尋筆記、標籤..."
+            autoFocus
+          />
+        </View>
+      </View>
+
+      {/* Filter chips */}
+      <View style={[styles.filterRow, { borderBottomColor: colors.divider }]}>
+        <FilterChips chips={FILTER_CHIPS} selectedIds={activeChips} onToggle={toggleChip} />
+        {/* AND/OR toggle */}
+        <TouchableOpacity
+          onPress={() => setLogicMode((m) => (m === 'AND' ? 'OR' : 'AND'))}
+          style={[styles.logicToggle, { backgroundColor: colors.chip }]}
+        >
+          <Text style={[styles.logicLabel, { color: colors.accentGreen }]}>{logicMode}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Results */}
+      {query.length > 0 || activeChips.length > 0 ? (
+        <>
+          <View style={styles.resultMeta}>
+            <Text style={[styles.resultCount, { color: colors.textMuted }]}>
+              {results.length} 筆結果
+            </Text>
+          </View>
+          <FlashList
+            data={results}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={[styles.emptyIcon, { color: colors.textMuted }]}>🔍</Text>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                  找不到符合的筆記
+                </Text>
+              </View>
+            }
+          />
+        </>
+      ) : (
+        <View style={styles.hintState}>
+          <Text style={[styles.hintIcon, { color: colors.textMuted }]}>💡</Text>
+          <Text style={[styles.hintText, { color: colors.textMuted }]}>
+            輸入關鍵字搜尋，多個關鍵字以空格分隔
+          </Text>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  back: {
+    fontSize: 28,
+    fontWeight: '300',
+    marginRight: 8,
+    lineHeight: 32,
+  },
+  searchBarWrap: {
+    flex: 1,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    paddingRight: 12,
+  },
+  logicToggle: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    marginLeft: 4,
+  },
+  logicLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  resultMeta: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  resultCount: {
+    fontSize: 12,
+  },
+  listContent: {
+    paddingBottom: 40,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+  emptyIcon: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+  },
+  hintState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  hintIcon: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
+  hintText: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});
