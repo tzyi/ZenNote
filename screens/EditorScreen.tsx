@@ -38,7 +38,6 @@ export default function EditorScreen() {
   const [images, setImages] = useState<NoteImage[]>(existingNote?.images ?? []);
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showImages, setShowImages] = useState(false);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef(content);
@@ -157,14 +156,12 @@ export default function EditorScreen() {
           />
 
           {/* Image uploader section (T027) */}
-          {showImages && (
-            <View style={[styles.imageSection, { borderTopColor: colors.divider }]}>
-              <ImageUploader
-                images={images}
-                onImagesChange={setImages}
-              />
-            </View>
-          )}
+          <View style={[styles.imageSection, { borderTopColor: colors.divider }]}>
+            <ImageUploader
+              images={images}
+              onImagesChange={setImages}
+            />
+          </View>
 
           {/* Tags section using TagInput (T026) */}
           <View style={[styles.tagsSection, { borderTopColor: colors.divider }]}>
@@ -175,7 +172,7 @@ export default function EditorScreen() {
         {/* Enhanced Toolbar (T029) */}
         <EditorToolbar
           onTagPress={() => inputRef.current?.blur()}
-          onImagePress={() => setShowImages((prev) => !prev)}
+          onImagePress={() => {}}
           onBoldPress={handleInsertBold}
           onHeadingPress={handleInsertHeading}
           onListPress={handleInsertList}
