@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  title: Settings API (Local)
+  version: 1.0.0
+paths:
+  /settings:
+    get:
+      summary: 取得設定
+      responses:
+        '200':
+          description: 設定內容
+    put:
+      summary: 更新設定
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        '200':
+          description: 更新成功
+components:
+  schemas:
+    Settings:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark, system]
+        backupPath:
+          type: string
+        importExportHistory:
+          type: array
+          items:
+            type: string

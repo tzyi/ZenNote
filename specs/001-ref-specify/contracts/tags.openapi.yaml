@@ -1,0 +1,62 @@
+openapi: 3.0.0
+info:
+  title: Tags API (Local)
+  version: 1.0.0
+paths:
+  /tags:
+    get:
+      summary: 取得所有標籤
+      responses:
+        '200':
+          description: 標籤列表
+    post:
+      summary: 新增標籤
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+      responses:
+        '201':
+          description: 新增成功
+  /tags/{id}:
+    put:
+      summary: 編輯標籤
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      summary: 刪除標籤
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 已刪除
+components:
+  schemas:
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        noteCount:
+          type: integer
+        order:
+          type: integer

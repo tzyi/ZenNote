@@ -103,5 +103,75 @@
 讓產品功能的描述更完整
 ```
 
+- 執行
+```
+/speckit.specify 請參考 ref_specify.md
+```
+
+# Clarify
+
+```
+clarify
+```
+
+- 檢查User Story是否詳盡
+```
+根據 ref_specify.md
+幫我檢查specs\001-ref-specify\spec.md的User Story
+是否列的詳盡?若不詳盡，請補上User Story
+```
 
 
+# plan
+- 跟AI討論，來產生ref_plan.md (Plan模式)
+
+```
+你是一位Github Copilot與Spec Kit專家
+根據ref_specify.md以及spec.md
+我要執行/speckit.plan時，提示詞可以打什麼?
+才可以為這個專案產生詳細的實作計劃
+```
+
+- ref_plan.md
+```
+# ref_plan
+
+- 以 React Native + TypeScript 為主，針對 Android 平台優化，並嚴格遵循設計稿（UI 需與 docs/ui/*.jpg 完全一致）。
+- 需涵蓋主畫面、文字編輯器、搜尋頁、左側邊欄、設定頁等五大功能模組。
+- 每個功能模組請細分為：資料結構設計、UI 組件拆解、狀態管理、資料儲存/查詢、互動流程、動畫/效能優化、測試重點。
+- 明確標註每個步驟需修改/新增的檔案（如 App.tsx、index.ts、各模組資料夾等）。
+- 針對每個 User Story 與 Edge Case，規劃對應的技術方案與驗收方式。
+- 強調程式碼品質、測試覆蓋率、效能指標（如首屏 500ms、滾動 60fps、搜尋 100ms 內）。
+- 需考慮離線運作、資料本地儲存、批次匯入/匯出、回收桶管理等細節。
+- 產出格式請分步驟條列，並以繁體中文撰寫。
+```
+
+- 執行
+```
+/speckit.plan 請參考 docs\plan\plan.md
+```
+
+
+# 驗證該計劃
+
+```
+現在，我希望你去審核實施計畫和實施細節文件。
+仔細閱讀，重點在於確定是否存在一系列你需要執行的任務，這些任務從本文內容中顯而易見。
+因為我不確定這裡的資訊是否足夠。例如，當我查看核心實作時，如果能在實作細節中找到相應的參考點
+以便它在執行核心實作或細化過程中的每個步驟時都能找到所需信息，那就很有幫助了。
+```
+
+
+# tasks
+
+```
+/speckit.tasks 一開始的步驟請先完成5個頁面的UI實作，功能先不實作，等UI的任務完成後再來這5個頁面的功能實作。
+並且UI 需與 docs/ui/*.jpg 完全一致來實作，不能有任何差異。
+UI完成後再來實作所有功能，功能的部分請參考spec.md以及ref_specify.md
+```
+
+
+# implement
+```
+/speckit.implement UI樣式請參考 docs/ui/*.jpg，且先實作specs\001-ref-specify\tasks.md中的T015~T055任務，共41個任務，41個任務完成才可以停止實作階段。
+```
