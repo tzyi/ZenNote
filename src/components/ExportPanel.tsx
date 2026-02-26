@@ -25,7 +25,7 @@ export function ExportPanel() {
 
     Alert.alert(
       '匯出全部筆記',
-      `將 ${activeNotes.length} 篇筆記各自打包為獨立的 .md 檔案，匯出成一個 .zip 壓縮檔`,
+      `將 ${activeNotes.length} 篇筆記各自打包為獨立的 .md 檔案，並匯出成 .zip。\n\n接下來請選擇要儲存的資料夾。`,
       [
         { text: '取消', style: 'cancel' },
         {
@@ -65,7 +65,7 @@ export function ExportPanel() {
             {isExporting ? '打包中…' : '匯出全部筆記 (.zip)'}
           </Text>
           <Text style={[styles.exportSubtitle, { color: colors.textInverse }]}>
-            {activeNotes.length} 篇筆記 · 每篇獨立 .md · 打包為 .zip
+            {activeNotes.length} 篇筆記 · 每篇獨立 .md · 選擇資料夾後儲存 .zip
           </Text>
         </View>
       </TouchableOpacity>

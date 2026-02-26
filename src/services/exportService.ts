@@ -1,5 +1,5 @@
 import { Note } from '../models';
-import { Share, Alert } from 'react-native';
+import { Share, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import JSZip from 'jszip';
@@ -88,9 +88,12 @@ export const ExportService = {
   // ─── zip export ────────────────────────────────────────────────────────────
 
   /**
-   * Package every note as an individual .md file inside a .zip archive,
-   * write it to the app's cache directory, then open the system share sheet
-   * so the user can save it to local storage (Files app / Downloads, etc.).
+   * Package every note as an individual .md file inside a .zip archive.
+   *
+   * Android: uses StorageAccessFramework to let the user pick a folder,
+   *          then saves the ZIP directly into that folder.
+   * iOS:     writes to cache then opens the system share sheet so the user
+   *          can choose "Save to Files" (or AirDrop, etc.).
    */
   async exportNotesToZip(notes: Note[]): Promise<void> {
     if (notes.length === 0) {
@@ -101,6 +104,7 @@ export const ExportService = {
     try {
       const zip = new JSZip();
       const exportTs = ExportService._formatFilenameDatetime(Date.now());
+      const zipFilename = `ZenNote_${exportTs}.zip`;
 
       // Add one .md file per note
       notes.forEach((note) => {
@@ -131,29 +135,53 @@ export const ExportService = {
         const shortId = note.id.slice(0, 8);
         const filename = `note_${fileDatetime}_${shortId}.md`;
         const tags = note.tags.length > 0 ? note.tags.map((t) => `#${t}`).join(' ') : '—';
-        indexLines.push(`| ${filename} | ${tags} | ${ExportService._formatDisplay(note.createdAt)} |`);
+        indexLines.push(
+          `| ${filename} | ${tags} | ${ExportService._formatDisplay(note.createdAt)} |`
+        );
       });
       zip.file('index.md', indexLines.join('\n'));
 
       // Generate zip as base64
       const base64 = await zip.generateAsync({ type: 'base64' });
 
-      // Write to cache dir
-      const zipPath = `${FileSystem.cacheDirectory}ZenNote_${exportTs}.zip`;
-      await FileSystem.writeAsStringAsync(zipPath, base64, {
-        encoding: 'base64' as const,
-      });
+      if (Platform.OS === 'android') {
+        // ── Android: SAF folder picker ────────────────────────────────────
+        const SAF = FileSystem.StorageAccessFramework;
+        const { granted, directoryUri } = await SAF.requestDirectoryPermissionsAsync();
 
-      // Share / save
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(zipPath, {
-          mimeType: 'application/zip',
-          dialogTitle: `儲存 ZenNote 匯出檔`,
-          UTI: 'public.zip-archive',
+        if (!granted) {
+          // User cancelled – silent exit
+          return;
+        }
+
+        // Create (or overwrite) the ZIP file in the chosen folder
+        const fileUri = await SAF.createFileAsync(
+          directoryUri,
+          zipFilename,
+          'application/zip'
+        );
+        await FileSystem.writeAsStringAsync(fileUri, base64, {
+          encoding: 'base64' as const,
         });
+
+        Alert.alert('匯出成功', `已儲存至您選擇的資料夾：\n${zipFilename}`);
       } else {
-        Alert.alert('不支援分享', '此裝置不支援檔案分享功能');
+        // ── iOS / other: write to cache then share ────────────────────────
+        const zipPath = `${FileSystem.cacheDirectory}${zipFilename}`;
+        await FileSystem.writeAsStringAsync(zipPath, base64, {
+          encoding: 'base64' as const,
+        });
+
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(zipPath, {
+            mimeType: 'application/zip',
+            dialogTitle: `儲存 ZenNote 匯出檔`,
+            UTI: 'public.zip-archive',
+          });
+        } else {
+          Alert.alert('不支援分享', '此裝置不支援檔案分享功能');
+        }
       }
     } catch (err) {
       console.error('[ExportService] exportNotesToZip error:', err);

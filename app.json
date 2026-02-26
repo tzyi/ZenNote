@@ -29,7 +29,8 @@
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -43,6 +44,11 @@
           "photosPermission": "ZenNote 需要存取您的相簿以新增圖片到筆記。"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f6fe70db-b7b3-487c-b005-a803891a32b1"
+      }
+    }
   }
 }
