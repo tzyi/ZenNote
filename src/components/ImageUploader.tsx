@@ -6,7 +6,9 @@ import {
   Image,
   StyleSheet,
   Alert,
-  FlatList,
+  Modal,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useColors } from '../theme';
@@ -28,7 +30,7 @@ export function ImageUploader({
   maxImages = 10,
 }: ImageUploaderProps) {
   const colors = useColors();
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
 
   const handleAddImage = useCallback(async () => {
     if (images.length >= maxImages) {
@@ -80,59 +82,6 @@ export function ImageUploader({
     [images, onImagesChange]
   );
 
-  const handleMoveImage = useCallback(
-    (fromIndex: number, toIndex: number) => {
-      if (toIndex < 0 || toIndex >= images.length) return;
-      const updated = [...images];
-      const [moved] = updated.splice(fromIndex, 1);
-      if (moved) {
-        updated.splice(toIndex, 0, moved);
-        onImagesChange(updated.map((img, idx) => ({ ...img, order: idx })));
-      }
-    },
-    [images, onImagesChange]
-  );
-
-  const renderImageItem = useCallback(
-    ({ item, index }: { item: NoteImage; index: number }) => (
-      <View style={styles.imageItem}>
-        <Image
-          source={{ uri: item.uri }}
-          style={[styles.thumbnail, { borderColor: colors.border }]}
-          resizeMode="cover"
-        />
-        <View style={styles.imageActions}>
-          {index > 0 && (
-            <TouchableOpacity
-              onPress={() => handleMoveImage(index, index - 1)}
-              style={[styles.moveBtn, { backgroundColor: colors.surface }]}
-            >
-              <Text style={[styles.moveBtnText, { color: colors.icon }]}>◀</Text>
-            </TouchableOpacity>
-          )}
-          {index < images.length - 1 && (
-            <TouchableOpacity
-              onPress={() => handleMoveImage(index, index + 1)}
-              style={[styles.moveBtn, { backgroundColor: colors.surface }]}
-            >
-              <Text style={[styles.moveBtnText, { color: colors.icon }]}>▶</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            onPress={() => handleRemoveImage(item.id)}
-            style={[styles.removeBtn, { backgroundColor: colors.accentRed }]}
-          >
-            <Text style={[styles.removeBtnText, { color: colors.textInverse }]}>✕</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={[styles.orderLabel, { color: colors.textMuted }]}>
-          {index + 1}/{images.length}
-        </Text>
-      </View>
-    ),
-    [colors, images.length, handleMoveImage, handleRemoveImage]
-  );
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -148,18 +97,63 @@ export function ImageUploader({
       </View>
 
       {images.length > 0 && (
-        <FlatList
-          horizontal
-          data={images}
-          renderItem={renderImageItem}
-          keyExtractor={(item) => item.id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.imageList}
-        />
+        <View style={styles.imageGrid}>
+          {images.map((item, index) => (
+            <View key={item.id} style={styles.imageItem}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setPreviewUri(item.uri)}
+              >
+                <Image
+                  source={{ uri: item.uri }}
+                  style={[styles.thumbnail, { borderColor: colors.border }]}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleRemoveImage(item.id)}
+                style={[styles.removeBtn, { backgroundColor: colors.accentRed }]}
+              >
+                <Text style={[styles.removeBtnText, { color: colors.textInverse }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       )}
+
+      {/* Full-screen image preview modal */}
+      <Modal
+        visible={previewUri !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewUri(null)}
+      >
+        <StatusBar backgroundColor="rgba(0,0,0,0.95)" barStyle="light-content" />
+        <View style={styles.previewOverlay}>
+          <TouchableOpacity
+            style={styles.previewCloseBtn}
+            onPress={() => setPreviewUri(null)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Text style={styles.previewCloseText}>✕</Text>
+          </TouchableOpacity>
+          {previewUri && (
+            <Image
+              source={{ uri: previewUri }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const IMAGE_COLUMNS = 4;
+const IMAGE_GAP = 8;
+const IMAGE_SIZE = (SCREEN_WIDTH - 32 - IMAGE_GAP * (IMAGE_COLUMNS - 1)) / IMAGE_COLUMNS;
 
 const styles = StyleSheet.create({
   container: {
@@ -186,37 +180,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  imageList: {
-    gap: 8,
+  imageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: IMAGE_GAP,
   },
   imageItem: {
-    alignItems: 'center',
+    position: 'relative',
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
   },
   thumbnail: {
-    width: 80,
-    height: 80,
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
     borderRadius: 8,
     borderWidth: 1,
   },
-  imageActions: {
-    flexDirection: 'row',
-    marginTop: 4,
-    gap: 4,
-  },
-  moveBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moveBtnText: {
-    fontSize: 10,
-  },
   removeBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -224,8 +210,31 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
-  orderLabel: {
-    fontSize: 10,
-    marginTop: 2,
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewCloseBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewCloseText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  previewImage: {
+    width: SCREEN_WIDTH - 32,
+    height: '80%',
   },
 });

@@ -162,7 +162,6 @@ export default function EditorScreen() {
               <ImageUploader
                 images={images}
                 onImagesChange={setImages}
-                noteId={noteId ?? generateId()}
               />
             </View>
           )}

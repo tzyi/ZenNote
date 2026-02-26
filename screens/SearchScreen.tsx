@@ -16,8 +16,6 @@ type LogicMode = 'AND' | 'OR';
 const FILTER_CHIPS: FilterChip[] = [
   { id: 'has-image', label: '有圖片', icon: '🖼' },
   { id: 'has-tag', label: '有標籤', icon: '🏷' },
-  { id: 'pinned', label: '已置頂', icon: '📌' },
-  { id: 'by-tag', label: '按標籤', icon: '#' },
   { id: 'by-date', label: '按日期', icon: '📅' },
 ];
 
