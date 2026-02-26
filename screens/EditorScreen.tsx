@@ -123,7 +123,7 @@ export default function EditorScreen() {
           <Text style={[styles.closeBtn, { color: colors.textSecondary }]}>✕</Text>
         </TouchableOpacity>
         <SaveIndicator visible={saved} />
-        <TouchableOpacity onPress={saveNote} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity onPress={handleClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.saveBtn, { color: colors.accentGreen }]}>
             {isSaving ? '儲存中...' : '儲存'}
           </Text>
