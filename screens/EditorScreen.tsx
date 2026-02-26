@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-import { EditorToolbar, SaveIndicator, TagInput, ImageUploader } from '../src/components';
+import { SaveIndicator, TagInput, ImageUploader } from '../src/components';
 import { useColors } from '../src/theme';
 import { useNotesStore } from '../src/store';
 import { NoteImage } from '../src/models';
@@ -94,23 +94,6 @@ export default function EditorScreen() {
     navigation.goBack();
   };
 
-  // Toolbar handlers (T029)
-  const handleInsertBold = useCallback(() => {
-    setContent((prev) => prev + '**粗體文字**');
-  }, []);
-
-  const handleInsertHeading = useCallback(() => {
-    setContent((prev) => prev + '\n## 標題\n');
-  }, []);
-
-  const handleInsertList = useCallback(() => {
-    setContent((prev) => prev + '\n- 項目\n');
-  }, []);
-
-  const handleInsertDivider = useCallback(() => {
-    setContent((prev) => prev + '\n---\n');
-  }, []);
-
   return (
     <SafeAreaView
       style={[styles.root, { backgroundColor: colors.background }]}
@@ -169,15 +152,6 @@ export default function EditorScreen() {
           </View>
         </ScrollView>
 
-        {/* Enhanced Toolbar (T029) */}
-        <EditorToolbar
-          onTagPress={() => inputRef.current?.blur()}
-          onImagePress={() => {}}
-          onBoldPress={handleInsertBold}
-          onHeadingPress={handleInsertHeading}
-          onListPress={handleInsertList}
-          onDividerPress={handleInsertDivider}
-        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
