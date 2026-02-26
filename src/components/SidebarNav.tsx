@@ -20,7 +20,7 @@ interface SidebarNavProps {
 export function SidebarNav({
   items,
   onSettingsPress,
-  username = 'ZenNote 用戶',
+  username = 'ZenNote',
   noteCount = 0,
 }: SidebarNavProps) {
   const colors = useColors();
