@@ -1,5 +1,12 @@
-import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useColors } from '../theme';
 import { useNotesStore } from '../store';
 import { ExportService } from '../services/exportService';
@@ -8,8 +15,9 @@ export function ExportPanel() {
   const colors = useColors();
   const { notes } = useNotesStore();
   const activeNotes = notes.filter((n) => !n.inRecycleBin);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const handleExport = useCallback(() => {
+  const handleExportZip = useCallback(() => {
     if (activeNotes.length === 0) {
       Alert.alert('無筆記', '沒有可匯出的筆記');
       return;
@@ -17,12 +25,19 @@ export function ExportPanel() {
 
     Alert.alert(
       '匯出全部筆記',
-      `將匯出 ${activeNotes.length} 篇筆記為 Markdown 格式（含圖片連結）`,
+      `將 ${activeNotes.length} 篇筆記各自打包為獨立的 .md 檔案，匯出成一個 .zip 壓縮檔`,
       [
         { text: '取消', style: 'cancel' },
         {
-          text: '匯出',
-          onPress: () => ExportService.shareNotes(activeNotes),
+          text: '匯出 ZIP',
+          onPress: async () => {
+            setIsExporting(true);
+            try {
+              await ExportService.exportNotesToZip(activeNotes);
+            } finally {
+              setIsExporting(false);
+            }
+          },
         },
       ]
     );
@@ -30,17 +45,27 @@ export function ExportPanel() {
 
   return (
     <View style={styles.container}>
+      {/* ZIP export — primary action */}
       <TouchableOpacity
-        onPress={handleExport}
-        style={[styles.exportBtn, { backgroundColor: colors.accentGreen }]}
+        onPress={handleExportZip}
+        disabled={isExporting}
+        style={[
+          styles.exportBtn,
+          { backgroundColor: colors.accentGreen },
+          isExporting && styles.exportBtnDisabled,
+        ]}
       >
-        <Text style={styles.exportIcon}>📤</Text>
+        {isExporting ? (
+          <ActivityIndicator color="#fff" style={styles.exportIcon} />
+        ) : (
+          <Text style={styles.exportIcon}>📦</Text>
+        )}
         <View style={styles.exportContent}>
           <Text style={[styles.exportTitle, { color: colors.textInverse }]}>
-            匯出全部筆記
+            {isExporting ? '打包中…' : '匯出全部筆記 (.zip)'}
           </Text>
           <Text style={[styles.exportSubtitle, { color: colors.textInverse }]}>
-            {activeNotes.length} 篇筆記 · Markdown 格式
+            {activeNotes.length} 篇筆記 · 每篇獨立 .md · 打包為 .zip
           </Text>
         </View>
       </TouchableOpacity>
@@ -58,6 +83,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
+  },
+  exportBtnDisabled: {
+    opacity: 0.6,
   },
   exportIcon: {
     fontSize: 24,
