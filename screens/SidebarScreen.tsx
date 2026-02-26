@@ -131,6 +131,16 @@ export default function SidebarScreen({ navigation }: DrawerContentComponentProp
       style={[styles.root, { backgroundColor: colors.sidebar }]}
       edges={['top', 'left', 'bottom']}
     >
+      {/* Nav items and settings at top (T041, T042) */}
+      <SidebarNav
+        items={navItems}
+        onSettingsPress={() => {
+          navigation.navigate('Settings');
+          navigation.dispatch(DrawerActions.closeDrawer());
+        }}
+        noteCount={activeNotes.length}
+      />
+
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Activity heatmap (T038) */}
         <Heatmap notes={notes} weeks={16} />
@@ -282,16 +292,6 @@ export default function SidebarScreen({ navigation }: DrawerContentComponentProp
           )}
         </View>
       </ScrollView>
-
-      {/* Nav items and settings at bottom (T041, T042) */}
-      <SidebarNav
-        items={navItems}
-        onSettingsPress={() => {
-          navigation.navigate('Settings');
-          navigation.dispatch(DrawerActions.closeDrawer());
-        }}
-        noteCount={activeNotes.length}
-      />
     </SafeAreaView>
   );
 }

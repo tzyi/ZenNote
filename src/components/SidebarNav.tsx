@@ -83,9 +83,8 @@ export function SidebarNav({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: {},
+
   profile: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -143,7 +142,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderTopWidth: 1,
-    marginTop: 'auto',
     marginHorizontal: 8,
     borderRadius: 8,
   },
