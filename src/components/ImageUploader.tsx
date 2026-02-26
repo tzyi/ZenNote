@@ -8,6 +8,7 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useColors } from '../theme';
 import { NoteImage } from '../models';
 
@@ -29,19 +30,36 @@ export function ImageUploader({
   const colors = useColors();
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
-  const handleAddImage = useCallback(() => {
+  const handleAddImage = useCallback(async () => {
     if (images.length >= maxImages) {
       Alert.alert('圖片上限', `每篇筆記最多 ${maxImages} 張圖片`);
       return;
     }
-    // In production, this would use react-native-image-picker
-    // For now, we add a placeholder
-    Alert.alert(
-      '新增圖片',
-      '圖片選擇功能需要 react-native-image-picker 套件',
-      [{ text: '知道了' }]
-    );
-  }, [images, maxImages]);
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('需要權限', '請在設定中允許存取相簿才能選擇圖片。');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 0.8,
+      allowsMultipleSelection: true,
+      selectionLimit: maxImages - images.length,
+    });
+
+    if (!result.canceled) {
+      const newImages: NoteImage[] = result.assets.map((asset, i) => ({
+        id: generateImageId(),
+        noteId: '',
+        uri: asset.uri,
+        order: images.length + i,
+      }));
+      onImagesChange([...images, ...newImages]);
+    }
+  }, [images, maxImages, onImagesChange]);
 
   const handleRemoveImage = useCallback(
     (imageId: string) => {

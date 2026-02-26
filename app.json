@@ -13,7 +13,10 @@
       "backgroundColor": "#1a1a1a"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "ZenNote 需要存取您的相簿以新增圖片到筆記。"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,14 +28,21 @@
       "package": "com.zennote.app",
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ZenNote 需要存取您的相簿以新增圖片到筆記。"
+        }
+      ]
     ]
   }
 }
