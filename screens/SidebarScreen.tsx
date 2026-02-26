@@ -120,14 +120,6 @@ export default function SidebarScreen({ navigation }: DrawerContentComponentProp
       active: true,
     },
     {
-      label: '每日回顧',
-      icon: '🔄',
-      onPress: () => {
-        navigation.navigate('DailyReview');
-        navigation.dispatch(DrawerActions.closeDrawer());
-      },
-    },
-    {
       label: `回收桶 ${recycleBinCount > 0 ? `(${recycleBinCount})` : ''}`,
       icon: '🗑',
       onPress: handleRecycleBinPress,

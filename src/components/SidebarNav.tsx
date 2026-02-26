@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '../theme';
 
 interface SidebarNavItem {
@@ -23,6 +24,7 @@ export function SidebarNav({
   noteCount = 0,
 }: SidebarNavProps) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
@@ -71,7 +73,7 @@ export function SidebarNav({
       {/* Settings button */}
       <TouchableOpacity
         onPress={onSettingsPress}
-        style={[styles.settingsBtn, { borderTopColor: colors.divider }]}
+        style={[styles.settingsBtn, { borderTopColor: colors.divider, marginBottom: Math.max(insets.bottom, 16) }]}
       >
         <Text style={styles.settingsIcon}>⚙️</Text>
         <Text style={[styles.settingsLabel, { color: colors.textSecondary }]}>設定</Text>
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 13,
     borderRadius: 8,
     marginHorizontal: 8,
     marginVertical: 2,
@@ -139,13 +141,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderTopWidth: 1,
     marginTop: 'auto',
+    marginHorizontal: 8,
+    borderRadius: 8,
   },
   settingsIcon: {
     fontSize: 16,
     marginRight: 12,
+    width: 24,
+    textAlign: 'center',
   },
   settingsLabel: {
     fontSize: 14,
