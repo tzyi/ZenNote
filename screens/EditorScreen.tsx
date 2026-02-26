@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -39,20 +39,12 @@ export default function EditorScreen() {
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentRef = useRef(content);
-  const tagsRef = useRef(tags);
-  const imagesRef = useRef(images);
   const inputRef = useRef<TextInput>(null);
 
-  contentRef.current = content;
-  tagsRef.current = tags;
-  imagesRef.current = images;
-
   const saveNote = useCallback(() => {
-    const c = contentRef.current.trim();
-    const t = tagsRef.current;
-    const imgs = imagesRef.current;
+    const c = content.trim();
+    const t = tags;
+    const imgs = images;
     if (!c) return;
 
     setIsSaving(true);
@@ -71,23 +63,7 @@ export default function EditorScreen() {
     }
     setIsSaving(false);
     setSaved(true);
-  }, [noteId, existingNote, addNote, updateNote]);
-
-  // Auto-save with 5s debounce (T028)
-  useEffect(() => {
-    const hasContentChange = content !== (existingNote?.content ?? '');
-    const hasTagChange = JSON.stringify(tags) !== JSON.stringify(existingNote?.tags ?? []);
-    const hasImageChange = JSON.stringify(images) !== JSON.stringify(existingNote?.images ?? []);
-
-    if (hasContentChange || hasTagChange || hasImageChange) {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      setSaved(false);
-      saveTimerRef.current = setTimeout(saveNote, 5000);
-    }
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [content, tags, images, saveNote, existingNote]);
+  }, [noteId, existingNote, addNote, updateNote, content, tags, images]);
 
   const handleClose = () => {
     saveNote();
