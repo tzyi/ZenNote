@@ -1,8 +1,33 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, ScrollView, Platform } from 'react-native';
+import { StyleSheet, ScrollView, Platform, Image } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useColors } from '../theme';
 import type { ColorScheme } from '../theme';
+
+/**
+ * Custom render rules to patch the `key`-in-spread bug inside
+ * react-native-markdown-display's default image rule.
+ *
+ * The default rule builds an `imageProps` object that contains `key`, then
+ * does `<FitImage {...imageProps} />`, which triggers React's:
+ *   "A props object containing a 'key' prop is being spread into JSX"
+ * warning.  We fix it by extracting `key` and passing it directly.
+ */
+const markdownRules = {
+  image: (node: any, _children: any, _parent: any, styles: any) => {
+    const { src, alt } = node.attributes as { src: string; alt?: string };
+    const imageProps: Record<string, any> = {
+      style: [styles._VIEW_SAFE_image ?? styles.image],
+      source: { uri: src },
+      resizeMode: 'contain' as const,
+    };
+    if (alt) {
+      imageProps.accessible = true;
+      imageProps.accessibilityLabel = alt;
+    }
+    return <Image key={node.key} {...imageProps} />;
+  },
+};
 
 interface MarkdownPreviewProps {
   content: string;
@@ -182,7 +207,7 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <Markdown style={markdownStyles}>{content}</Markdown>
+      <Markdown style={markdownStyles} rules={markdownRules}>{content}</Markdown>
     </ScrollView>
   );
 }

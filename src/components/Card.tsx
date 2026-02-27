@@ -1,18 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Image,
+  LayoutChangeEvent,
+  Platform,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import Markdown from 'react-native-markdown-display';
 import { Note } from '../models';
 import { TagBadge } from './TagBadge';
 import { useColors } from '../theme';
+import type { ColorScheme } from '../theme';
 
-const MAX_COLLAPSED_LINES = 5;
+const COLLAPSED_MAX_HEIGHT = 120; // ~5 lines
 const MAX_VISIBLE_TAGS = 5;
+
+function buildCardMarkdownStyles(colors: ColorScheme) {
+  return StyleSheet.create({
+    body: { color: colors.textPrimary, fontSize: 15, lineHeight: 22 },
+    heading1: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' as const, marginTop: 4, marginBottom: 2 },
+    heading2: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' as const, marginTop: 4, marginBottom: 2 },
+    heading3: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' as const, marginTop: 2, marginBottom: 2 },
+    paragraph: { marginTop: 0, marginBottom: 4 },
+    strong: { fontWeight: '700' as const },
+    em: { fontStyle: 'italic' as const },
+    s: { textDecorationLine: 'line-through' as const },
+    link: { color: colors.accentBlue },
+    code_inline: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.accentOrange,
+      borderRadius: 3,
+      paddingHorizontal: 4,
+      fontSize: 13,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    fence: {
+      backgroundColor: colors.surface,
+      color: colors.textPrimary,
+      borderRadius: 6,
+      padding: 8,
+      marginVertical: 4,
+      fontSize: 12,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    blockquote: {
+      backgroundColor: colors.surfaceVariant,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accentGreen,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      marginVertical: 4,
+      borderRadius: 3,
+    },
+    hr: { backgroundColor: colors.divider, height: 1, marginVertical: 6 },
+    bullet_list: { marginVertical: 2 },
+    ordered_list: { marginVertical: 2 },
+    list_item: { flexDirection: 'row' as const, marginVertical: 1 },
+    bullet_list_icon: { color: colors.accentGreen, marginRight: 6, fontSize: 14 },
+    ordered_list_icon: { color: colors.accentGreen, marginRight: 6, fontSize: 14 },
+  });
+}
 
 interface CardProps {
   note: Note;
@@ -42,12 +92,18 @@ function formatDate(ts: number): string {
 
 export function Card({ note, onPress, onLongPress, showRecycleDays }: CardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [contentOverflows, setContentOverflows] = useState(false);
   const colors = useColors();
+  const markdownStyles = useMemo(() => buildCardMarkdownStyles(colors), [colors]);
 
   const visibleTags = note.tags.slice(0, MAX_VISIBLE_TAGS);
   const hiddenTagCount = note.tags.length - MAX_VISIBLE_TAGS;
-  const hasMoreContent = note.content.split('\n').length > MAX_COLLAPSED_LINES
-    || note.content.length > 400;
+
+  const handleContentLayout = useCallback((e: LayoutChangeEvent) => {
+    if (!expanded && e.nativeEvent.layout.height >= COLLAPSED_MAX_HEIGHT - 4) {
+      setContentOverflows(true);
+    }
+  }, [expanded]);
 
   return (
     <Animated.View entering={FadeIn.duration(300)}>
@@ -67,15 +123,26 @@ export function Card({ note, onPress, onLongPress, showRecycleDays }: CardProps)
           )}
         </View>
 
-        {/* Content */}
-        <Text
-          style={[styles.content, { color: colors.textPrimary }]}
-          numberOfLines={expanded ? undefined : MAX_COLLAPSED_LINES}
+        {/* Markdown Content */}
+        <View
+          style={[
+            styles.contentWrapper,
+            !expanded && { maxHeight: COLLAPSED_MAX_HEIGHT, overflow: 'hidden' },
+          ]}
+          onLayout={handleContentLayout}
         >
-          {note.content}
-        </Text>
+          <Markdown style={markdownStyles}>{note.content}</Markdown>
+        </View>
 
-        {/* Images preview */}
+        {/* Expand button */}
+        {contentOverflows && !expanded && (
+          <TouchableOpacity
+            onPress={() => setExpanded(true)}
+            style={styles.expandBtn}
+          >
+            <Text style={[styles.expandText, { color: colors.accentGreen }]}>展開</Text>
+          </TouchableOpacity>
+        )}
         {note.images.length > 0 && (
           <View style={styles.imagesRow}>
             {note.images.slice(0, 3).map((img) => (
@@ -94,16 +161,6 @@ export function Card({ note, onPress, onLongPress, showRecycleDays }: CardProps)
               </View>
             )}
           </View>
-        )}
-
-        {/* Expand button */}
-        {hasMoreContent && !expanded && (
-          <TouchableOpacity
-            onPress={() => setExpanded(true)}
-            style={styles.expandBtn}
-          >
-            <Text style={[styles.expandText, { color: colors.accentGreen }]}>展開</Text>
-          </TouchableOpacity>
         )}
 
         {/* Tags */}
@@ -157,6 +214,9 @@ const styles = StyleSheet.create({
   content: {
     fontSize: 15,
     lineHeight: 22,
+    marginBottom: 8,
+  },
+  contentWrapper: {
     marginBottom: 8,
   },
   imagesRow: {
