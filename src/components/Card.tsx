@@ -134,13 +134,21 @@ export function Card({ note, onPress, onLongPress, showRecycleDays }: CardProps)
           <Markdown style={markdownStyles}>{note.content}</Markdown>
         </View>
 
-        {/* Expand button */}
+        {/* Expand / Collapse button */}
         {contentOverflows && !expanded && (
           <TouchableOpacity
             onPress={() => setExpanded(true)}
             style={styles.expandBtn}
           >
-            <Text style={[styles.expandText, { color: colors.accentGreen }]}>展開</Text>
+            <Text style={[styles.expandText, { color: colors.accentGreen }]}>▼ 展開</Text>
+          </TouchableOpacity>
+        )}
+        {contentOverflows && expanded && (
+          <TouchableOpacity
+            onPress={() => setExpanded(false)}
+            style={styles.expandBtn}
+          >
+            <Text style={[styles.expandText, { color: colors.accentGreen }]}>▲ 收合</Text>
           </TouchableOpacity>
         )}
         {note.images.length > 0 && (
