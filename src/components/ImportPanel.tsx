@@ -40,6 +40,10 @@ export function ImportPanel() {
               draft.content,
               draft.tags ?? []
             );
+            // Include images from the draft
+            if (draft.images && draft.images.length > 0) {
+              note.images = draft.images;
+            }
             addNote(note);
             result.imported++;
           }
@@ -121,8 +125,9 @@ export function ImportPanel() {
         return;
       }
 
-      const mdFiles = await ImportService.extractMarkdownFromZip(asset.uri);
-      if (mdFiles.length === 0) {
+      const extractResult = await ImportService.extractAllFromZip(asset.uri);
+
+      if (extractResult.mdFiles.length === 0) {
         Alert.alert('無 Markdown 檔案', 'ZIP 壓縮包內未找到任何 .md 檔案。');
         setImporting(false);
         return;
@@ -131,13 +136,21 @@ export function ImportPanel() {
       const drafts: Partial<Note>[] = [];
       const errors: string[] = [];
 
-      for (const { filename, content } of mdFiles) {
+      for (const { filename, content } of extractResult.mdFiles) {
         try {
           const parsed = ImportService.parseSingleMarkdownFile(
             filename,
             content
           );
           if (parsed) {
+            // Process images for this note from the ZIP
+            const images = await ImportService.processNoteImages(
+              filename,
+              extractResult
+            );
+            if (images.length > 0) {
+              parsed.images = images;
+            }
             drafts.push(parsed);
           }
         } catch {

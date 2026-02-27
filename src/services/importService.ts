@@ -1,5 +1,6 @@
-import { Note } from '../models';
+import { Note, NoteImage } from '../models';
 import { File } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as DocumentPicker from 'expo-document-picker';
 import JSZip from 'jszip';
 
@@ -8,6 +9,20 @@ export interface ImportResult {
   imported: number;
   duplicates: number;
   errors: string[];
+}
+
+export interface ZipExtractResult {
+  mdFiles: { filename: string; content: string }[];
+  imageFiles: { zipPath: string; base64: string }[];
+  meta: ZenNoteMeta | null;
+}
+
+export interface ZenNoteMeta {
+  version: number;
+  notes: {
+    noteFilename: string;
+    images: { zipPath: string; id: string; order: number }[];
+  }[];
 }
 
 /**
@@ -160,6 +175,13 @@ export const ImportService = {
         }
         continue;
       }
+
+      // Skip ZenNote export headers, metadata, and image references
+      if (line.startsWith('# 筆記 - ') || line.startsWith('# ZenNote 匯出')) continue;
+      if (line.startsWith('匯出時間:') || line.startsWith('共 ')) continue;
+      if (line.startsWith('*建立時間:') || line.startsWith('*最後修改:')) continue;
+      if (line.startsWith('## 圖片') || line.startsWith('![')) continue;
+
       cleanLines.push(line);
     }
 
@@ -180,5 +202,118 @@ export const ImportService = {
     return newNotes.filter(
       (n) => n.content && !existingContents.has(n.content.trim().toLowerCase())
     );
+  },
+
+  /**
+   * Extract all content from a .zip archive including .md files,
+   * image files (binary as base64), and _zennote_meta.json metadata.
+   */
+  async extractAllFromZip(zipUri: string): Promise<ZipExtractResult> {
+    const base64 = await new File(zipUri).base64();
+    const zip = await JSZip.loadAsync(base64, { base64: true });
+
+    const mdFiles: { filename: string; content: string }[] = [];
+    const imageFiles: { zipPath: string; base64: string }[] = [];
+    let meta: ZenNoteMeta | null = null;
+
+    const entries = Object.entries(zip.files);
+    for (const [path, file] of entries) {
+      if (file.dir) continue;
+      if (path.startsWith('__MACOSX/')) continue;
+
+      const filename = path.split('/').pop() ?? path;
+
+      // _zennote_meta.json
+      if (filename === '_zennote_meta.json') {
+        try {
+          const content = await file.async('string');
+          meta = JSON.parse(content);
+        } catch {}
+        continue;
+      }
+
+      // .md files
+      if (path.toLowerCase().endsWith('.md')) {
+        const content = await file.async('string');
+        mdFiles.push({ filename, content });
+        continue;
+      }
+
+      // Image files
+      if (/\.(jpg|jpeg|png|gif|webp|heic|bmp)$/i.test(path)) {
+        const imgBase64 = await file.async('base64');
+        imageFiles.push({ zipPath: path, base64: imgBase64 });
+      }
+    }
+
+    return { mdFiles, imageFiles, meta };
+  },
+
+  /**
+   * Save an imported image (base64) to the app's document directory.
+   * Returns the local file URI.
+   */
+  async saveImportedImage(
+    base64Data: string,
+    filename: string
+  ): Promise<string> {
+    const dir = `${FileSystem.documentDirectory}imported_images/`;
+    const dirInfo = await FileSystem.getInfoAsync(dir);
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+    }
+
+    const uniqueFilename = `${Date.now()}_${Math.random().toString(36).slice(2, 5)}_${filename}`;
+    const filePath = `${dir}${uniqueFilename}`;
+    await FileSystem.writeAsStringAsync(filePath, base64Data, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return filePath;
+  },
+
+  /**
+   * Process images for a specific note based on ZIP extract results.
+   * Saves images to local storage and returns NoteImage array.
+   */
+  async processNoteImages(
+    noteFilename: string,
+    extractResult: ZipExtractResult
+  ): Promise<NoteImage[]> {
+    if (!extractResult.meta) return [];
+
+    const noteMeta = extractResult.meta.notes.find(
+      (n) => n.noteFilename === noteFilename
+    );
+    if (!noteMeta || noteMeta.images.length === 0) return [];
+
+    const images: NoteImage[] = [];
+    for (const imgMeta of noteMeta.images) {
+      const imageFile = extractResult.imageFiles.find(
+        (f) => f.zipPath === imgMeta.zipPath
+      );
+      if (!imageFile) continue;
+
+      try {
+        const imgFilename =
+          imgMeta.zipPath.split('/').pop() ?? `image_${imgMeta.order}.jpg`;
+        const localUri = await ImportService.saveImportedImage(
+          imageFile.base64,
+          imgFilename
+        );
+        images.push({
+          id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          noteId: '',
+          uri: localUri,
+          order: imgMeta.order,
+        });
+      } catch (err) {
+        console.warn(
+          `[ImportService] Failed to save image: ${imgMeta.zipPath}`,
+          err
+        );
+      }
+    }
+
+    return images;
   },
 };

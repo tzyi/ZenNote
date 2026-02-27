@@ -40,10 +40,23 @@ export const ExportService = {
     });
   },
 
+  /** Get image file extension from URI, defaulting to .jpg */
+  _getImageExtension(uri: string): string {
+    const cleanUri = uri.split('?')[0]?.split('#')[0] ?? uri;
+    const match = cleanUri.match(/\.(\w+)$/);
+    if (match) {
+      const ext = match[1].toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp'].includes(ext)) {
+        return `.${ext}`;
+      }
+    }
+    return '.jpg';
+  },
+
   // ─── markdown generation ───────────────────────────────────────────────────
 
   /** Convert a single note to Markdown string */
-  noteToMarkdown(note: Note): string {
+  noteToMarkdown(note: Note, imageZipPaths?: string[]): string {
     const lines: string[] = [];
     const dateStr = ExportService._formatDisplay(note.createdAt);
 
@@ -61,7 +74,8 @@ export const ExportService = {
     if (note.images.length > 0) {
       lines.push('## 圖片');
       note.images.forEach((img, i) => {
-        lines.push(`![圖片 ${i + 1}](${img.uri})`);
+        const path = imageZipPaths?.[i] ?? img.uri;
+        lines.push(`![圖片 ${i + 1}](${path})`);
       });
       lines.push('');
     }
@@ -106,13 +120,58 @@ export const ExportService = {
       const exportTs = ExportService._formatFilenameDatetime(Date.now());
       const zipFilename = `ZenNote_${exportTs}.zip`;
 
-      // Add one .md file per note
-      notes.forEach((note) => {
+      // Track image metadata for _zennote_meta.json
+      const imagesMeta: {
+        noteFilename: string;
+        images: { zipPath: string; id: string; order: number }[];
+      }[] = [];
+
+      // Add one .md file per note, plus image files
+      for (const note of notes) {
         const fileDatetime = ExportService._formatFilenameDatetime(note.createdAt);
         const shortId = note.id.slice(0, 8);
         const filename = `note_${fileDatetime}_${shortId}.md`;
-        zip.file(filename, ExportService.noteToMarkdown(note));
-      });
+
+        const noteImageMeta: { zipPath: string; id: string; order: number }[] = [];
+        const imageZipPaths: string[] = [];
+
+        // Add images to ZIP
+        for (const img of note.images) {
+          try {
+            const ext = ExportService._getImageExtension(img.uri);
+            const imageZipPath = `images/${shortId}_${img.order}${ext}`;
+
+            const imgBase64 = await FileSystem.readAsStringAsync(img.uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+
+            zip.file(imageZipPath, imgBase64, { base64: true });
+            imageZipPaths.push(imageZipPath);
+            noteImageMeta.push({
+              zipPath: imageZipPath,
+              id: img.id,
+              order: img.order,
+            });
+          } catch (err) {
+            console.warn(`[ExportService] Failed to read image: ${img.uri}`, err);
+            imageZipPaths.push(img.uri);
+          }
+        }
+
+        zip.file(filename, ExportService.noteToMarkdown(note, imageZipPaths));
+
+        if (noteImageMeta.length > 0) {
+          imagesMeta.push({ noteFilename: filename, images: noteImageMeta });
+        }
+      }
+
+      // Add image metadata JSON
+      if (imagesMeta.length > 0) {
+        zip.file(
+          '_zennote_meta.json',
+          JSON.stringify({ version: 1, notes: imagesMeta }, null, 2)
+        );
+      }
 
       // Add an index.md with a summary table
       const indexLines: string[] = [
