@@ -7,15 +7,25 @@ interface ToolbarAction {
   label: string;
   onPress: () => void;
   active?: boolean;
+  fontWeight?: '400' | '700';
+  fontStyle?: 'normal' | 'italic';
+  textDecoration?: 'none' | 'line-through';
 }
 
 interface EditorToolbarProps {
   onTagPress: () => void;
   onImagePress: () => void;
   onBoldPress?: () => void;
+  onItalicPress?: () => void;
   onHeadingPress?: () => void;
   onListPress?: () => void;
   onDividerPress?: () => void;
+  onCodePress?: () => void;
+  onQuotePress?: () => void;
+  onLinkPress?: () => void;
+  onStrikethroughPress?: () => void;
+  onPreviewToggle?: () => void;
+  isPreviewMode?: boolean;
   onMorePress?: () => void;
 }
 
@@ -23,9 +33,16 @@ export function EditorToolbar({
   onTagPress,
   onImagePress,
   onBoldPress,
+  onItalicPress,
   onHeadingPress,
   onListPress,
   onDividerPress,
+  onCodePress,
+  onQuotePress,
+  onLinkPress,
+  onStrikethroughPress,
+  onPreviewToggle,
+  isPreviewMode,
   onMorePress,
 }: EditorToolbarProps) {
   const colors = useColors();
@@ -34,7 +51,8 @@ export function EditorToolbar({
   const mainActions: ToolbarAction[] = [
     { icon: '#', label: '標籤', onPress: onTagPress },
     { icon: '🖼', label: '圖片', onPress: onImagePress },
-    { icon: 'B', label: '粗體', onPress: onBoldPress ?? (() => undefined) },
+    { icon: 'B', label: '粗體', onPress: onBoldPress ?? (() => undefined), fontWeight: '700' },
+    { icon: 'I', label: '斜體', onPress: onItalicPress ?? (() => undefined), fontStyle: 'italic' },
     { icon: 'H', label: '標題', onPress: onHeadingPress ?? (() => undefined) },
     { icon: '⋯', label: '更多', onPress: () => setShowMore((p) => !p) },
   ];
@@ -42,6 +60,10 @@ export function EditorToolbar({
   const moreActions: ToolbarAction[] = [
     { icon: '•', label: '列表', onPress: onListPress ?? (() => undefined) },
     { icon: '—', label: '分隔線', onPress: onDividerPress ?? (() => undefined) },
+    { icon: 'S', label: '刪除線', onPress: onStrikethroughPress ?? (() => undefined), textDecoration: 'line-through' },
+    { icon: '❝', label: '引用', onPress: onQuotePress ?? (() => undefined) },
+    { icon: '</>', label: '程式碼', onPress: onCodePress ?? (() => undefined) },
+    { icon: '🔗', label: '連結', onPress: onLinkPress ?? (() => undefined) },
   ];
 
   return (
@@ -67,7 +89,19 @@ export function EditorToolbar({
                 }}
                 style={styles.button}
               >
-                <Text style={[styles.buttonIcon, { color: colors.icon }]}>{action.icon}</Text>
+                <Text
+                  style={[
+                    styles.buttonIcon,
+                    {
+                      color: colors.icon,
+                      fontWeight: action.fontWeight ?? '400',
+                      fontStyle: action.fontStyle ?? 'normal',
+                      textDecorationLine: action.textDecoration ?? 'none',
+                    },
+                  ]}
+                >
+                  {action.icon}
+                </Text>
                 <Text style={[styles.buttonLabel, { color: colors.textMuted }]}>
                   {action.label}
                 </Text>
@@ -96,7 +130,8 @@ export function EditorToolbar({
                 styles.buttonIcon,
                 {
                   color: action.active ? colors.textInverse : colors.icon,
-                  fontWeight: action.label === '粗體' ? '700' : '400',
+                  fontWeight: action.fontWeight ?? '400',
+                  fontStyle: action.fontStyle ?? 'normal',
                 },
               ]}
             >

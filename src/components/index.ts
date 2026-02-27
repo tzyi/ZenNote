@@ -21,3 +21,4 @@ export { RecycleBinManager } from './RecycleBinManager';
 export { BackupPanel } from './BackupPanel';
 export { ResetPanel } from './ResetPanel';
 export { AboutPanel } from './AboutPanel';
+export { MarkdownPreview } from './MarkdownPreview';
