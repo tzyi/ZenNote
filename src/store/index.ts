@@ -69,6 +69,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     const newNotes = [note, ...get().notes];
     set({ notes: newNotes });
     debouncedSaveNotes(newNotes);
+    syncTagCounts(newNotes);
   },
 
   updateNote: (id, updates) => {
@@ -77,6 +78,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
     set({ notes: newNotes });
     debouncedSaveNotes(newNotes);
+    syncTagCounts(newNotes);
   },
 
   moveToRecycleBin: (id) => {
@@ -87,6 +89,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
     set({ notes: newNotes });
     debouncedSaveNotes(newNotes);
+    syncTagCounts(newNotes);
   },
 
   restoreFromRecycleBin: (id) => {
@@ -97,18 +100,21 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
     set({ notes: newNotes });
     debouncedSaveNotes(newNotes);
+    syncTagCounts(newNotes);
   },
 
   deleteNote: (id) => {
     const newNotes = get().notes.filter((n) => n.id !== id);
     set({ notes: newNotes });
     debouncedSaveNotes(newNotes);
+    syncTagCounts(newNotes);
   },
 
   clearRecycleBin: () => {
     const newNotes = get().notes.filter((n) => !n.inRecycleBin);
     set({ notes: newNotes });
     debouncedSaveNotes(newNotes);
+    syncTagCounts(newNotes);
   },
 
   togglePin: (id) => {
@@ -174,6 +180,32 @@ export const useTagsStore = create<TagsState>((set, get) => ({
     debouncedSaveTags(tags);
   },
 }));
+
+// ─── Tag Count Sync ───────────────────────────────────────────────────────────
+// Recalculates noteCount for all tags based on active (non-recycled) notes.
+// Tags whose count drops to 0 are automatically deleted.
+// Called as a regular function declaration so it is hoisted and usable in
+// useNotesStore actions even though useTagsStore is declared after them.
+function syncTagCounts(notes: Note[]) {
+  const countMap: Record<string, number> = {};
+  notes.forEach((note) => {
+    if (!note.inRecycleBin) {
+      note.tags.forEach((tagName) => {
+        countMap[tagName] = (countMap[tagName] ?? 0) + 1;
+      });
+    }
+  });
+
+  const { tags, updateTag, deleteTag } = useTagsStore.getState();
+  tags.forEach((tag) => {
+    const newCount = countMap[tag.name] ?? 0;
+    if (newCount === 0) {
+      deleteTag(tag.id);
+    } else if (tag.noteCount !== newCount) {
+      updateTag(tag.id, { noteCount: newCount });
+    }
+  });
+}
 
 // ─── Settings Store ───────────────────────────────────────────────────────────
 
