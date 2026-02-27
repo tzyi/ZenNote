@@ -66,17 +66,17 @@ describe('Performance: Search debounce', () => {
   });
 });
 
-describe('Performance: Editor auto-save', () => {
-  it('EditorScreen uses debounced auto-save', () => {
+describe('Performance: Editor manual-save', () => {
+  it('EditorScreen has manual save button (no auto-save)', () => {
     const fs = require('fs');
     const path = require('path');
     const content = fs.readFileSync(
       path.resolve(__dirname, '../../screens/EditorScreen.tsx'),
       'utf-8',
     );
-    // Auto-save should use setTimeout/interval based approach
-    expect(content).toContain('auto');
-    expect(content).toContain('save');
+    // Manual save only: should have handleSave function, no auto-save timer
+    expect(content).toContain('handleSave');
+    expect(content).not.toContain('saveTimerRef');
   });
 });
 
@@ -103,15 +103,15 @@ describe('Performance: Reanimated animations', () => {
 });
 
 describe('Performance: Memory-safe patterns', () => {
-  it('EditorScreen cleans up auto-save on unmount', () => {
+  it('EditorScreen does not use auto-save timers (manual save only)', () => {
     const fs = require('fs');
     const path = require('path');
     const content = fs.readFileSync(
       path.resolve(__dirname, '../../screens/EditorScreen.tsx'),
       'utf-8',
     );
-    // Should have cleanup in useEffect return
-    expect(content).toContain('clearTimeout');
+    // No auto-save timer: should not contain saveTimerRef or auto-save debounce
+    expect(content).not.toContain('saveTimerRef');
   });
 
   it('SearchBar cleans up debounce timer on unmount', () => {

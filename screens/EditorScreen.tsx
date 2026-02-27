@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -39,31 +39,21 @@ export default function EditorScreen() {
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentRef = useRef(content);
-  const tagsRef = useRef(tags);
-  const imagesRef = useRef(images);
   const inputRef = useRef<TextInput>(null);
 
-  contentRef.current = content;
-  tagsRef.current = tags;
-  imagesRef.current = images;
-
-  const saveNote = useCallback(() => {
-    const c = contentRef.current.trim();
-    const t = tagsRef.current;
-    const imgs = imagesRef.current;
+  const handleSave = useCallback(() => {
+    const c = content.trim();
     if (!c) return;
 
     setIsSaving(true);
     if (noteId && existingNote) {
-      updateNote(noteId, { content: c, tags: t, images: imgs });
+      updateNote(noteId, { content: c, tags, images });
     } else {
       addNote({
         id: generateId(),
         content: c,
-        tags: t,
-        images: imgs,
+        tags,
+        images,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         inRecycleBin: false,
@@ -71,26 +61,9 @@ export default function EditorScreen() {
     }
     setIsSaving(false);
     setSaved(true);
-  }, [noteId, existingNote, addNote, updateNote]);
-
-  // Auto-save with 5s debounce (T028)
-  useEffect(() => {
-    const hasContentChange = content !== (existingNote?.content ?? '');
-    const hasTagChange = JSON.stringify(tags) !== JSON.stringify(existingNote?.tags ?? []);
-    const hasImageChange = JSON.stringify(images) !== JSON.stringify(existingNote?.images ?? []);
-
-    if (hasContentChange || hasTagChange || hasImageChange) {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      setSaved(false);
-      saveTimerRef.current = setTimeout(saveNote, 5000);
-    }
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [content, tags, images, saveNote, existingNote]);
+  }, [content, tags, images, noteId, existingNote, addNote, updateNote]);
 
   const handleClose = () => {
-    saveNote();
     navigation.goBack();
   };
 
@@ -105,7 +78,7 @@ export default function EditorScreen() {
           <Text style={[styles.closeBtn, { color: colors.textSecondary }]}>✕</Text>
         </TouchableOpacity>
         <SaveIndicator visible={saved} />
-        <TouchableOpacity onPress={handleClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity onPress={handleSave} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.saveBtn, { color: colors.accentGreen }]}>
             {isSaving ? '儲存中...' : '儲存'}
           </Text>
