@@ -61,7 +61,9 @@ export default function EditorScreen() {
     }
     setIsSaving(false);
     setSaved(true);
-  }, [content, tags, images, noteId, existingNote, addNote, updateNote]);
+    // 儲存後自動返回主畫面
+    navigation.goBack();
+  }, [content, tags, images, noteId, existingNote, addNote, updateNote, navigation]);
 
   const handleClose = () => {
     navigation.goBack();
