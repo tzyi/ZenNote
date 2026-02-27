@@ -17,8 +17,6 @@ import { Note } from '../src/models';
 import { ExportService } from '../src/services/exportService';
 import type { RootStackNavigationProp } from '../src/navigation/types';
 
-type TimeFilter = 'all' | 'today' | 'week' | 'month';
-
 interface SectionHeader {
   type: 'header';
   title: string;
@@ -41,15 +39,11 @@ function getDateLabel(ts: number): string {
   });
 }
 
-function filterNotes(notes: Note[], filter: TimeFilter): Note[] {
-  const now = Date.now();
-  const DAY = 86400000;
+function filterNotes(notes: Note[], dateFrom?: number, dateTo?: number): Note[] {
   return notes.filter((n) => {
     if (n.inRecycleBin) return false;
-    if (filter === 'all') return true;
-    if (filter === 'today') return now - n.createdAt < DAY;
-    if (filter === 'week') return now - n.createdAt < DAY * 7;
-    if (filter === 'month') return now - n.createdAt < DAY * 30;
+    if (dateFrom !== undefined && n.createdAt < dateFrom) return false;
+    if (dateTo !== undefined && n.createdAt > dateTo) return false;
     return true;
   });
 }
@@ -79,11 +73,17 @@ export default function MainScreen() {
   const colors = useColors();
   const navigation = useNavigation<RootStackNavigationProp>();
   const { notes, moveToRecycleBin, togglePin } = useNotesStore();
-  const [activeFilter, setActiveFilter] = useState<TimeFilter>('all');
+  const [dateFrom, setDateFrom] = useState<number | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<number | undefined>(undefined);
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
-  const filtered = filterNotes(notes, activeFilter);
+  const handleDateChange = useCallback((from?: number, to?: number) => {
+    setDateFrom(from);
+    setDateTo(to);
+  }, []);
+
+  const filtered = filterNotes(notes, dateFrom, dateTo);
   const listItems = buildListItems(filtered);
 
   const handleCardLongPress = useCallback((note: Note) => {
@@ -164,8 +164,9 @@ export default function MainScreen() {
       <MainHeader
         onMenuPress={() => navigation.dispatch(DrawerActions.openDrawer())}
         onSearchPress={() => navigation.navigate('Drawer', { screen: 'Search' } as never)}
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateChange={handleDateChange}
       />
 
       <FlashList

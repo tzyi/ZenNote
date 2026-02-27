@@ -2,30 +2,24 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '../theme';
-
-type TimeFilter = 'all' | 'today' | 'week' | 'month';
+import { DatePicker } from './DatePicker';
 
 interface MainHeaderProps {
   title?: string;
   onMenuPress: () => void;
   onSearchPress: () => void;
-  activeFilter: TimeFilter;
-  onFilterChange: (filter: TimeFilter) => void;
+  dateFrom?: number;
+  dateTo?: number;
+  onDateChange: (from?: number, to?: number) => void;
 }
-
-const FILTERS: { label: string; value: TimeFilter }[] = [
-  { label: '全部', value: 'all' },
-  { label: '今天', value: 'today' },
-  { label: '本週', value: 'week' },
-  { label: '本月', value: 'month' },
-];
 
 export function MainHeader({
   title = 'ZenNote',
   onMenuPress,
   onSearchPress,
-  activeFilter,
-  onFilterChange,
+  dateFrom,
+  dateTo,
+  onDateChange,
 }: MainHeaderProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -60,32 +54,8 @@ export function MainHeader({
         </TouchableOpacity>
       </View>
 
-      {/* Filter tabs */}
-      <View style={styles.filterRow}>
-        {FILTERS.map((f) => (
-          <TouchableOpacity
-            key={f.value}
-            onPress={() => onFilterChange(f.value)}
-            style={[
-              styles.filterTab,
-              activeFilter === f.value && { borderBottomColor: colors.accentGreen },
-            ]}
-          >
-            <Text
-              style={[
-                styles.filterLabel,
-                {
-                  color:
-                    activeFilter === f.value ? colors.accentGreen : colors.textSecondary,
-                  fontWeight: activeFilter === f.value ? '600' : '400',
-                },
-              ]}
-            >
-              {f.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Date range picker */}
+      <DatePicker dateFrom={dateFrom} dateTo={dateTo} onDateChange={onDateChange} />
     </View>
   );
 }
@@ -111,19 +81,5 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.5,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 8,
-  },
-  filterTab: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  filterLabel: {
-    fontSize: 13,
   },
 });
