@@ -5,5 +5,9 @@ module.exports = function (api) {
       ['babel-preset-expo', { jsxImportSource: 'nativewind' }],
       'nativewind/babel',
     ],
+    plugins: [
+      // react-native-reanimated/plugin 必須是最後一個 plugin
+      'react-native-reanimated/plugin',
+    ],
   };
 };

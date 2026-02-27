@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
   View,
-  TouchableOpacity,
   Text,
   Image,
   StyleSheet,
@@ -10,7 +9,22 @@ import {
   Dimensions,
   StatusBar,
 } from 'react-native';
+import {
+  TouchableOpacity as RNGHTouchableOpacity,
+} from 'react-native-gesture-handler';
+// ── 使用 RN 原生 TouchableOpacity (在 GestureHandlerRootView 外) ──
+import { TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { useColors } from '../theme';
 import { NoteImage } from '../models';
 
@@ -23,6 +37,132 @@ interface ImageUploaderProps {
 function generateImageId(): string {
   return `img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
+
+// ─── ZoomableImage ────────────────────────────────────────────────────────────
+// 支援：雙擊放大/還原、捏放縮放、放大後平移
+interface ZoomableImageProps {
+  uri: string;
+}
+
+function ZoomableImage({ uri }: ZoomableImageProps) {
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
+  const focalX = useSharedValue(0);
+  const focalY = useSharedValue(0);
+
+  // ── 捏放縮放 ──────────────────────────────────────────────────────────────
+  const pinchGesture = Gesture.Pinch()
+    .onStart((e) => {
+      'worklet';
+      savedScale.value = scale.value;
+      focalX.value = e.focalX;
+      focalY.value = e.focalY;
+    })
+    .onUpdate((e) => {
+      'worklet';
+      const nextScale = Math.max(0.5, Math.min(savedScale.value * e.scale, 6));
+      scale.value = nextScale;
+    })
+    .onEnd(() => {
+      'worklet';
+      if (scale.value < 1.05) {
+        scale.value = withTiming(1, { duration: 200 });
+        translateX.value = withTiming(0, { duration: 200 });
+        translateY.value = withTiming(0, { duration: 200 });
+        savedScale.value = 1;
+      } else {
+        savedScale.value = scale.value;
+      }
+    });
+
+  // ── 放大後平移 ─────────────────────────────────────────────────────────────
+  const panGesture = Gesture.Pan()
+    .minPointers(1)
+    .maxPointers(2)
+    .onStart(() => {
+      'worklet';
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      'worklet';
+      translateX.value = savedTranslateX.value + e.translationX;
+      translateY.value = savedTranslateY.value + e.translationY;
+    })
+    .onEnd(() => {
+      'worklet';
+      // scale == 1 時彈回原位
+      if (scale.value <= 1.05) {
+        translateX.value = withTiming(0, { duration: 200 });
+        translateY.value = withTiming(0, { duration: 200 });
+      }
+    });
+
+  // ── 雙擊切換 2.5× / 還原 ──────────────────────────────────────────────────
+  const doubleTapGesture = Gesture.Tap()
+    .numberOfTaps(2)
+    .maxDuration(300)
+    .onEnd((_e, success) => {
+      'worklet';
+      if (!success) return;
+      if (scale.value > 1.05) {
+        scale.value = withTiming(1, { duration: 250 });
+        translateX.value = withTiming(0, { duration: 250 });
+        translateY.value = withTiming(0, { duration: 250 });
+        savedScale.value = 1;
+      } else {
+        scale.value = withTiming(2.5, { duration: 300 });
+        savedScale.value = 2.5;
+      }
+    });
+
+  // 組合手勢：pinch + pan 同時進行，doubleTap 獨立辨識
+  const pinchPan = Gesture.Simultaneous(pinchGesture, panGesture);
+  const allGestures = Gesture.Simultaneous(doubleTapGesture, pinchPan);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  return (
+    <GestureDetector gesture={allGestures}>
+      <Animated.View
+        style={[zoomStyles.container, animatedStyle]}
+        // Android: 防止 View 被 layout 優化器移除（關鍵！）
+        collapsable={false}
+      >
+        <Image
+          source={{ uri }}
+          style={zoomStyles.image}
+          resizeMode="contain"
+        />
+      </Animated.View>
+    </GestureDetector>
+  );
+}
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const zoomStyles = StyleSheet.create({
+  container: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT * 0.8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+});
 
 export function ImageUploader({
   images,
@@ -129,28 +269,23 @@ export function ImageUploader({
         onRequestClose={() => setPreviewUri(null)}
       >
         <StatusBar backgroundColor="rgba(0,0,0,0.95)" barStyle="light-content" />
-        <View style={styles.previewOverlay}>
-          <TouchableOpacity
+        <GestureHandlerRootView style={styles.previewOverlay}>
+          {/* 關閉按鈕使用 RNGH TouchableOpacity 避免跨觸控系統衝突 */}
+          <RNGHTouchableOpacity
             style={styles.previewCloseBtn}
             onPress={() => setPreviewUri(null)}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Text style={styles.previewCloseText}>✕</Text>
-          </TouchableOpacity>
-          {previewUri && (
-            <Image
-              source={{ uri: previewUri }}
-              style={styles.previewImage}
-              resizeMode="contain"
-            />
-          )}
-        </View>
+          </RNGHTouchableOpacity>
+          {previewUri && <ZoomableImage uri={previewUri} />}
+          <Text style={styles.previewHint}>雙擊放大 · 捏放縮放 · 拖曳平移</Text>
+        </GestureHandlerRootView>
       </Modal>
     </View>
   );
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const IMAGE_COLUMNS = 4;
 const IMAGE_GAP = 8;
 const IMAGE_SIZE = (SCREEN_WIDTH - 32 - IMAGE_GAP * (IMAGE_COLUMNS - 1)) / IMAGE_COLUMNS;
@@ -233,8 +368,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  previewImage: {
-    width: SCREEN_WIDTH - 32,
-    height: '80%',
+  previewHint: {
+    position: 'absolute',
+    bottom: 40,
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 12,
+    letterSpacing: 0.5,
   },
 });
