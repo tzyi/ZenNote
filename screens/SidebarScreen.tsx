@@ -21,7 +21,7 @@ import type { RootStackNavigationProp } from '../src/navigation/types';
 export default function SidebarScreen({ navigation }: DrawerContentComponentProps) {
   const colors = useColors();
   const { notes } = useNotesStore();
-  const { tags, addTag, updateTag, deleteTag, reorderTags } = useTagsStore();
+  const { tags, addTag, updateTag, deleteTag } = useTagsStore();
 
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editTagName, setEditTagName] = useState('');
@@ -77,16 +77,9 @@ export default function SidebarScreen({ navigation }: DrawerContentComponentProp
     [deleteTag]
   );
 
-  // Tag management: move up/down for reorder (T039)
-  const handleMoveTag = useCallback(
-    (index: number, direction: 'up' | 'down') => {
-      const newTags = [...tags];
-      const swapIdx = direction === 'up' ? index - 1 : index + 1;
-      if (swapIdx < 0 || swapIdx >= newTags.length) return;
-      [newTags[index], newTags[swapIdx]] = [newTags[swapIdx], newTags[index]];
-      reorderTags(newTags.map((t, i) => ({ ...t, order: i })));
-    },
-    [tags, reorderTags]
+  // Tags sorted A-Z for display
+  const sortedTags = [...tags].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   );
 
   // Navigate to tag aggregate view (T040)
@@ -193,7 +186,7 @@ export default function SidebarScreen({ navigation }: DrawerContentComponentProp
           )}
 
           {/* Tag list with CRUD (T039) */}
-          {tags.map((tag, index) => (
+          {sortedTags.map((tag) => (
             <Animated.View
               key={tag.id}
               layout={Layout.springify()}
@@ -222,43 +215,6 @@ export default function SidebarScreen({ navigation }: DrawerContentComponentProp
                 </View>
               ) : (
                 <View style={styles.tagItem}>
-                  {/* Reorder buttons */}
-                  <View style={styles.reorderBtns}>
-                    <TouchableOpacity
-                      onPress={() => handleMoveTag(index, 'up')}
-                      disabled={index === 0}
-                      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                    >
-                      <Text
-                        style={[
-                          styles.reorderIcon,
-                          { color: index === 0 ? colors.surfaceVariant : colors.textMuted },
-                        ]}
-                      >
-                        ▲
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => handleMoveTag(index, 'down')}
-                      disabled={index === tags.length - 1}
-                      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                    >
-                      <Text
-                        style={[
-                          styles.reorderIcon,
-                          {
-                            color:
-                              index === tags.length - 1
-                                ? colors.surfaceVariant
-                                : colors.textMuted,
-                          },
-                        ]}
-                      >
-                        ▼
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
                   {/* Tag name - tap to navigate (T040) */}
                   <TouchableOpacity
                     style={styles.tagNameArea}
@@ -376,15 +332,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     gap: 8,
-  },
-  reorderBtns: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 2,
-  },
-  reorderIcon: {
-    fontSize: 8,
-    lineHeight: 10,
   },
   tagNameArea: {
     flex: 1,
