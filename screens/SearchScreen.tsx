@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { SearchBar, FilterChips, FilterChip, Card, TagSelector, DatePicker } from '../src/components';
+import { SearchBar, FilterChips, FilterChip, Card, TagSelector } from '../src/components';
 import { useColors } from '../src/theme';
 import { useNotesStore } from '../src/store';
 import { Note } from '../src/models';
@@ -16,7 +16,6 @@ type LogicMode = 'AND' | 'OR';
 const FILTER_CHIPS: FilterChip[] = [
   { id: 'has-image', label: '有圖片', icon: '🖼' },
   { id: 'has-tag', label: '有標籤', icon: '🏷' },
-  { id: 'by-date', label: '按日期', icon: '📅' },
 ];
 
 function searchNotes(
@@ -24,8 +23,7 @@ function searchNotes(
   query: string,
   activeChips: string[],
   logicMode: LogicMode,
-  selectedTags: string[],
-  dateRange: { from?: number; to?: number }
+  selectedTags: string[]
 ): Note[] {
   let result = notes.filter((n) => !n.inRecycleBin);
 
@@ -47,14 +45,6 @@ function searchNotes(
         ? selectedTags.every((t) => n.tags.includes(t))
         : selectedTags.some((t) => n.tags.includes(t))
     );
-  }
-
-  // Date range filter (T036)
-  if (dateRange.from) {
-    result = result.filter((n) => n.createdAt >= dateRange.from!);
-  }
-  if (dateRange.to) {
-    result = result.filter((n) => n.createdAt <= dateRange.to!);
   }
 
   // Text search with AND/OR (T034)
@@ -81,15 +71,13 @@ export default function SearchScreen() {
   const [logicMode, setLogicMode] = useState<LogicMode>('AND');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showTagSelector, setShowTagSelector] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateRange, setDateRange] = useState<{ from?: number; to?: number }>({});
 
   const hasActiveFilter =
-    debouncedQuery.length > 0 || activeChips.length > 0 || selectedTags.length > 0 || dateRange.from || dateRange.to;
+    debouncedQuery.length > 0 || activeChips.length > 0 || selectedTags.length > 0;
 
   const results = useMemo(
-    () => searchNotes(notes, debouncedQuery, activeChips, logicMode, selectedTags, dateRange),
-    [notes, debouncedQuery, activeChips, logicMode, selectedTags, dateRange]
+    () => searchNotes(notes, debouncedQuery, activeChips, logicMode, selectedTags),
+    [notes, debouncedQuery, activeChips, logicMode, selectedTags]
   );
 
   const toggleChip = useCallback((id: string) => {
@@ -97,18 +85,9 @@ export default function SearchScreen() {
       setShowTagSelector((p) => !p);
       return;
     }
-    if (id === 'by-date') {
-      setShowDatePicker((p) => !p);
-      return;
-    }
     setActiveChips((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
-  }, []);
-
-  const handleDateSelect = useCallback((from: number, to: number) => {
-    setDateRange({ from, to });
-    setShowDatePicker(false);
   }, []);
 
   // Animated card item (T037)
@@ -169,38 +148,17 @@ export default function SearchScreen() {
         </View>
       )}
 
-      {/* Date picker panel (T036) */}
-      {showDatePicker && (
-        <DatePicker
-          visible={showDatePicker}
-          onSelect={handleDateSelect}
-          onClose={() => setShowDatePicker(false)}
-        />
-      )}
-
       {/* Active filter badges */}
-      {(selectedTags.length > 0 || dateRange.from) && (
+      {selectedTags.length > 0 && (
         <View style={styles.activeBadges}>
-          {selectedTags.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSelectedTags([])}
-              style={[styles.activeBadge, { backgroundColor: colors.chipActive }]}
-            >
-              <Text style={[styles.activeBadgeText, { color: colors.chipActiveText }]}>
-                {selectedTags.length} 個標籤 ✕
-              </Text>
-            </TouchableOpacity>
-          )}
-          {dateRange.from && (
-            <TouchableOpacity
-              onPress={() => setDateRange({})}
-              style={[styles.activeBadge, { backgroundColor: colors.chipActive }]}
-            >
-              <Text style={[styles.activeBadgeText, { color: colors.chipActiveText }]}>
-                日期篩選 ✕
-              </Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={() => setSelectedTags([])}
+            style={[styles.activeBadge, { backgroundColor: colors.chipActive }]}
+          >
+            <Text style={[styles.activeBadgeText, { color: colors.chipActiveText }]}>
+              {selectedTags.length} 個標籤 ✕
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
