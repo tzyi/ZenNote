@@ -10,11 +10,19 @@ interface HeatmapProps {
 
 const CELL_SIZE = 11;
 const CELL_GAP = 2;
+const COL_WIDTH = CELL_SIZE + CELL_GAP;
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function Heatmap({ notes, weeks = 16 }: HeatmapProps) {
+interface MonthLabel {
+  colIndex: number;
+  label: string;
+}
+
+export function Heatmap({ notes, weeks = 13 }: HeatmapProps) {
   const colors = useColors();
 
-  const { grid, maxCount, totalCount } = useMemo(() => {
+  const { grid, maxCount, totalCount, monthLabels, gridWidth } = useMemo(() => {
     const now = Date.now();
     const DAY = 24 * 3600 * 1000;
     const WEEK = 7 * DAY;
@@ -30,7 +38,11 @@ export function Heatmap({ notes, weeks = 16 }: HeatmapProps) {
     }
 
     const heatmap: number[][] = [];
+    const labels: MonthLabel[] = [];
+    let lastMonth = -1;
+
     for (let w = weeks - 1; w >= 0; w--) {
+      const colIndex = (weeks - 1) - w; // 0-based column index (left to right)
       const week: number[] = [];
       for (let d = 6; d >= 0; d--) {
         const dayStart = now - w * WEEK - d * DAY;
@@ -38,12 +50,22 @@ export function Heatmap({ notes, weeks = 16 }: HeatmapProps) {
         week.push(dayCounts[dayKey] ?? 0);
       }
       heatmap.push(week);
+
+      // Determine month label – use the middle day of the week column for accuracy
+      const midDayMs = now - w * WEEK - 3 * DAY;
+      const month = new Date(midDayMs).getMonth();
+      if (month !== lastMonth) {
+        labels.push({ colIndex, label: MONTH_ABBR[month] });
+        lastMonth = month;
+      }
     }
 
     return {
       grid: heatmap,
       maxCount: Math.max(...heatmap.flat(), 1),
       totalCount: total,
+      monthLabels: labels,
+      gridWidth: weeks * COL_WIDTH - CELL_GAP,
     };
   }, [notes, weeks]);
 
@@ -63,6 +85,16 @@ export function Heatmap({ notes, weeks = 16 }: HeatmapProps) {
         <Text style={[styles.countLabel, { color: colors.textMuted }]}>
           {totalCount} 篇筆記
         </Text>
+      </View>
+      {/* Month labels row */}
+      <View style={[styles.monthRow, { width: gridWidth }]}>
+        {monthLabels.map((m) => (
+          <Text
+            key={m.colIndex}
+            style={[styles.monthLabel, { color: colors.textMuted, left: m.colIndex * COL_WIDTH }]}
+            numberOfLines={1}
+          >{m.label}</Text>
+        ))}
       </View>
       <View style={styles.grid}>
         {grid.map((week, wi) => (
@@ -129,6 +161,17 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     gap: CELL_GAP,
+  },
+  monthRow: {
+    position: 'relative',
+    height: 14,
+    marginBottom: 2,
+  },
+  monthLabel: {
+    position: 'absolute',
+    top: 0,
+    fontSize: 9,
+    fontWeight: '500',
   },
   week: {
     flexDirection: 'column',
