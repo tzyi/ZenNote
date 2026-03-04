@@ -116,6 +116,8 @@ export const ImportService = {
       const lines = section.trim().split('\n');
       const content: string[] = [];
       const tags: string[] = [];
+      // Track whether we've entered the auto-generated "## 圖片" section
+      let inAutoImagesSection = false;
 
       for (const line of lines) {
         // Extract tags from **標籤**: #tag1 #tag2 pattern
@@ -133,7 +135,14 @@ export const ImportService = {
         if (line.startsWith('# 筆記 - ') || line.startsWith('# ZenNote 匯出')) continue;
         if (line.startsWith('匯出時間:') || line.startsWith('共 ')) continue;
         if (line.startsWith('*建立時間:') || line.startsWith('*最後修改:')) continue;
-        if (line.startsWith('## 圖片') || line.startsWith('![')) continue;
+
+        // Enter auto-generated images section; skip the header and any image
+        // links within it, but preserve ![]() links typed by the user elsewhere
+        if (line.startsWith('## 圖片')) {
+          inAutoImagesSection = true;
+          continue;
+        }
+        if (inAutoImagesSection && line.startsWith('![')) continue;
 
         content.push(line);
       }
@@ -166,6 +175,9 @@ export const ImportService = {
     const lines = trimmed.split('\n');
     const cleanLines: string[] = [];
 
+    // Track whether we've entered the auto-generated "## 圖片" section
+    let inAutoImagesSection = false;
+
     for (const line of lines) {
       const tagMatch = line.match(/^\*\*標籤\*\*:\s*(.+)$/);
       if (tagMatch?.[1]) {
@@ -176,11 +188,18 @@ export const ImportService = {
         continue;
       }
 
-      // Skip ZenNote export headers, metadata, and image references
+      // Skip ZenNote export headers and metadata
       if (line.startsWith('# 筆記 - ') || line.startsWith('# ZenNote 匯出')) continue;
       if (line.startsWith('匯出時間:') || line.startsWith('共 ')) continue;
       if (line.startsWith('*建立時間:') || line.startsWith('*最後修改:')) continue;
-      if (line.startsWith('## 圖片') || line.startsWith('![')) continue;
+
+      // Enter auto-generated images section; skip the header and any image
+      // links within it, but preserve ![]() links typed by the user elsewhere
+      if (line.startsWith('## 圖片')) {
+        inAutoImagesSection = true;
+        continue;
+      }
+      if (inAutoImagesSection && line.startsWith('![')) continue;
 
       cleanLines.push(line);
     }

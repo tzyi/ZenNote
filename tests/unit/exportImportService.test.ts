@@ -64,6 +64,26 @@ describe('ImportService', () => {
       expect(notes.length).toBe(1);
       expect(notes[0].content).toBe('Just a simple note');
     });
+
+    it('should preserve user-typed ![]() image links in content', () => {
+      const md = `# 筆記 - 2024/01/01 00:00
+
+Here is a link: ![logo](https://example.com/logo.png)
+And another: ![diagram](./assets/diagram.svg)
+
+## 圖片
+![圖片 1](images/abc12345_0.jpg)
+
+---
+*建立時間: 2024/01/01 00:00*`;
+      const notes = ImportService.parseMarkdown(md);
+      expect(notes.length).toBe(1);
+      // User-typed image links should be preserved
+      expect(notes[0].content).toContain('![logo](https://example.com/logo.png)');
+      expect(notes[0].content).toContain('![diagram](./assets/diagram.svg)');
+      // Auto-generated export image links should be removed
+      expect(notes[0].content).not.toContain('![圖片 1](images/abc12345_0.jpg)');
+    });
   });
 
   describe('deduplicateNotes', () => {
