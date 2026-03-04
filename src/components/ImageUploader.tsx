@@ -270,14 +270,15 @@ export function ImageUploader({
       >
         <StatusBar backgroundColor="rgba(0,0,0,0.95)" barStyle="light-content" />
         <GestureHandlerRootView style={styles.previewOverlay}>
-          {/* 關閉按鈕使用 RNGH TouchableOpacity 避免跨觸控系統衝突 */}
-          <RNGHTouchableOpacity
+          {/* 關閉按鈕改用原生 TouchableOpacity，避免在 Modal 內失效 */}
+          <TouchableOpacity
             style={styles.previewCloseBtn}
             onPress={() => setPreviewUri(null)}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
           >
             <Text style={styles.previewCloseText}>✕</Text>
-          </RNGHTouchableOpacity>
+          </TouchableOpacity>
           {previewUri && <ZoomableImage uri={previewUri} />}
           <Text style={styles.previewHint}>雙擊放大 · 捏放縮放 · 拖曳平移</Text>
         </GestureHandlerRootView>
@@ -353,13 +354,13 @@ const styles = StyleSheet.create({
   },
   previewCloseBtn: {
     position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    top: 24, // 更靠近螢幕頂端
+    right: 16, // 更靠近右側
+    zIndex: 100,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
