@@ -129,7 +129,8 @@ export const ExportService = {
       // Add one .md file per note, plus image files
       for (const note of notes) {
         const fileDatetime = ExportService._formatFilenameDatetime(note.createdAt);
-        const shortId = note.id.slice(0, 8);
+        const idParts = note.id.split('-');
+        const shortId = idParts.length >= 3 ? idParts.slice(2).join('-') : note.id.slice(-8);
         const filename = `note_${fileDatetime}_${shortId}.md`;
 
         const noteImageMeta: { zipPath: string; id: string; order: number }[] = [];
@@ -172,33 +173,6 @@ export const ExportService = {
           JSON.stringify({ version: 1, notes: imagesMeta }, null, 2)
         );
       }
-
-      // Add an index.md with a summary table
-      const indexLines: string[] = [
-        `# ZenNote 匯出`,
-        ``,
-        `匯出時間: ${new Date().toLocaleDateString('zh-TW', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        })}`,
-        `共 ${notes.length} 篇筆記`,
-        ``,
-        `| 檔案名稱 | 標籤 | 建立時間 |`,
-        `| --- | --- | --- |`,
-      ];
-      notes.forEach((note) => {
-        const fileDatetime = ExportService._formatFilenameDatetime(note.createdAt);
-        const shortId = note.id.slice(0, 8);
-        const filename = `note_${fileDatetime}_${shortId}.md`;
-        const tags = note.tags.length > 0 ? note.tags.map((t) => `#${t}`).join(' ') : '—';
-        indexLines.push(
-          `| ${filename} | ${tags} | ${ExportService._formatDisplay(note.createdAt)} |`
-        );
-      });
-      zip.file('index.md', indexLines.join('\n'));
 
       // Generate zip as base64
       const base64 = await zip.generateAsync({ type: 'base64' });
