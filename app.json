@@ -4,7 +4,7 @@
     "slug": "ZenNote",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/ui/iconpic.jpg",
+    "icon": "./assets/ui/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -20,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/ui/iconpic.jpg",
+        "foregroundImage": "./assets/ui/icon.png",
         "backgroundColor": "#1a1a1a"
       },
       "edgeToEdgeEnabled": true,
@@ -34,7 +34,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/ui/iconpic.jpg"
+      "favicon": "./assets/ui/icon.png"
     },
     "plugins": [
       "expo-font",
