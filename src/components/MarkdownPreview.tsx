@@ -1,31 +1,74 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, ScrollView, Platform, Image } from 'react-native';
+import React, { useMemo, useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, Platform, Image, View, Text } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useColors } from '../theme';
 import type { ColorScheme } from '../theme';
 
-/**
- * Custom render rules to patch the `key`-in-spread bug inside
- * react-native-markdown-display's default image rule.
- *
- * The default rule builds an `imageProps` object that contains `key`, then
- * does `<FitImage {...imageProps} />`, which triggers React's:
- *   "A props object containing a 'key' prop is being spread into JSX"
- * warning.  We fix it by extracting `key` and passing it directly.
- */
+// ─── MarkdownImage ────────────────────────────────────────────────────────────
+// 自動偵測圖片原始尺寸並計算正確的 aspectRatio，解決 RN Image 預設 0×0 問題。
+interface MarkdownImageProps {
+  src: string;
+  alt?: string;
+  style: any;
+}
+
+function MarkdownImage({ src, alt, style }: MarkdownImageProps) {
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!src) return;
+    setHasError(false);
+    Image.getSize(
+      src,
+      (w, h) => setAspectRatio(h > 0 ? w / h : 1),
+      () => setHasError(true),
+    );
+  }, [src]);
+
+  if (hasError) {
+    return (
+      <View style={[style, imgStyles.errorBox]}>
+        <Text style={imgStyles.errorText}>⚠ 圖片無法顯示</Text>
+      </View>
+    );
+  }
+
+  // 取得尺寸前先以預設比例佔位，避免畫面跳動
+  return (
+    <Image
+      style={[style, { width: '100%', aspectRatio: aspectRatio ?? 16 / 9 }]}
+      source={{ uri: src }}
+      resizeMode="contain"
+      accessible={!!alt}
+      accessibilityLabel={alt || undefined}
+    />
+  );
+}
+
+const imgStyles = StyleSheet.create({
+  errorBox: {
+    minHeight: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(128,128,128,0.1)',
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  errorText: {
+    color: '#888',
+    fontSize: 13,
+  },
+});
+
+// ─── markdownRules ────────────────────────────────────────────────────────────
+// 修正 react-native-markdown-display 預設 image rule 中
+// key 被 spread 進 JSX 而觸發的 React 警告，同時改用 MarkdownImage 確保尺寸正確。
 const markdownRules = {
   image: (node: any, _children: any, _parent: any, styles: any) => {
     const { src, alt } = node.attributes as { src: string; alt?: string };
-    const imageProps: Record<string, any> = {
-      style: [styles._VIEW_SAFE_image ?? styles.image],
-      source: { uri: src },
-      resizeMode: 'contain' as const,
-    };
-    if (alt) {
-      imageProps.accessible = true;
-      imageProps.accessibilityLabel = alt;
-    }
-    return <Image key={node.key} {...imageProps} />;
+    const imageStyle = styles._VIEW_SAFE_image ?? styles.image;
+    return <MarkdownImage key={node.key} src={src} alt={alt} style={imageStyle} />;
   },
 };
 
