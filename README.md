@@ -5,7 +5,7 @@
 
 
 <div align="center">
-	<img src="docs/img/info.jpg" alt="ZenNote UI 預覽" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px #0002;" />
+	<img src="docs/img/main.jpg" alt="ZenNote UI 預覽" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px #0002;" />
 </div>
 
 
