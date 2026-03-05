@@ -20,8 +20,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/ui/icon.png",
-        "backgroundColor": "#1a1a1a"
+        "foregroundImage": "./assets/foreground.png",
+        "backgroundColor": "#2D3E93"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
