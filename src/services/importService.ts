@@ -204,6 +204,11 @@ export const ImportService = {
       cleanLines.push(line);
     }
 
+    // Remove trailing '---' separator left by old ZenNote export format
+    while (cleanLines.length > 0 && cleanLines[cleanLines.length - 1].trim() === '---') {
+      cleanLines.pop();
+    }
+
     const finalContent = cleanLines.join('\n').trim();
     if (!finalContent) return null;
 

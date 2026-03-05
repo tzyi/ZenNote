@@ -80,7 +80,6 @@ export const ExportService = {
       lines.push('');
     }
 
-    lines.push('---');
     lines.push(`*建立時間: ${dateStr}*`);
     if (note.updatedAt !== note.createdAt) {
       lines.push(`*最後修改: ${ExportService._formatDisplay(note.updatedAt)}*`);
@@ -95,7 +94,7 @@ export const ExportService = {
       `# ZenNote 匯出\n\n` +
       `匯出時間: ${new Date().toLocaleDateString('zh-TW')}\n` +
       `共 ${notes.length} 篇筆記\n\n---\n\n`;
-    const body = notes.map((n) => ExportService.noteToMarkdown(n)).join('\n\n');
+    const body = notes.map((n) => ExportService.noteToMarkdown(n)).join('\n\n---\n\n');
     return header + body;
   },
 
