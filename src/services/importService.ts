@@ -26,6 +26,44 @@ export interface ZenNoteMeta {
 }
 
 /**
+ * Parse a ZenNote-exported filename like "note_20240115_103000_abc123.md"
+ * and return the creation timestamp in milliseconds, or null if not matched.
+ */
+function parseCreatedAtFromFilename(filename: string): number | null {
+  const match = filename.match(/^note_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_/);
+  if (!match) return null;
+  const [, year, month, day, hour, min, sec] = match;
+  const ts = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(min),
+    Number(sec)
+  ).getTime();
+  return isNaN(ts) ? null : ts;
+}
+
+/**
+ * Extract createdAt / updatedAt from the HTML comment injected by ExportService:
+ * <!-- zennote:createdAt=1234567890000 updatedAt=1234567890000 -->
+ * Returns { createdAt, updatedAt } or null if not found.
+ */
+function parseZennoteTimestamps(
+  lines: string[]
+): { createdAt: number; updatedAt: number } | null {
+  for (const line of lines) {
+    const m = line.match(
+      /<!--\s*zennote:createdAt=(\d+)\s+updatedAt=(\d+)\s*-->/
+    );
+    if (m) {
+      return { createdAt: Number(m[1]), updatedAt: Number(m[2]) };
+    }
+  }
+  return null;
+}
+
+/**
  * Import service for parsing Markdown content into notes,
  * picking files from device, and extracting .zip archives.
  */
@@ -119,6 +157,9 @@ export const ImportService = {
       // Track whether we've entered the auto-generated "## 圖片" section
       let inAutoImagesSection = false;
 
+      // Extract timestamps before iterating (they are in HTML comments)
+      const timestamps = parseZennoteTimestamps(lines);
+
       for (const line of lines) {
         // Extract tags from **標籤**: #tag1 #tag2 pattern
         const tagMatch = line.match(/^\*\*標籤\*\*:\s*(.+)$/);
@@ -135,6 +176,8 @@ export const ImportService = {
         if (line.startsWith('# 筆記 - ') || line.startsWith('# ZenNote 匯出')) continue;
         if (line.startsWith('匯出時間:') || line.startsWith('共 ')) continue;
         if (line.startsWith('*建立時間:') || line.startsWith('*最後修改:')) continue;
+        // Skip machine-readable timestamp comment
+        if (line.startsWith('<!-- zennote:')) continue;
 
         // Enter auto-generated images section; skip the header and any image
         // links within it, but preserve ![]() links typed by the user elsewhere
@@ -149,10 +192,12 @@ export const ImportService = {
 
       const trimmedContent = content.join('\n').trim();
       if (trimmedContent) {
-        notes.push({
-          content: trimmedContent,
-          tags,
-        });
+        const draft: Partial<Note> = { content: trimmedContent, tags };
+        if (timestamps) {
+          draft.createdAt = timestamps.createdAt;
+          draft.updatedAt = timestamps.updatedAt;
+        }
+        notes.push(draft);
       }
     }
 
@@ -192,6 +237,8 @@ export const ImportService = {
       if (line.startsWith('# 筆記 - ') || line.startsWith('# ZenNote 匯出')) continue;
       if (line.startsWith('匯出時間:') || line.startsWith('共 ')) continue;
       if (line.startsWith('*建立時間:') || line.startsWith('*最後修改:')) continue;
+      // Skip machine-readable timestamp comment
+      if (line.startsWith('<!-- zennote:')) continue;
 
       // Enter auto-generated images section; skip the header and any image
       // links within it, but preserve ![]() links typed by the user elsewhere
@@ -212,7 +259,22 @@ export const ImportService = {
     const finalContent = cleanLines.join('\n').trim();
     if (!finalContent) return null;
 
-    return { content: finalContent, tags };
+    const draft: Partial<Note> = { content: finalContent, tags };
+
+    // Prefer embedded HTML comment timestamps; fall back to parsing filename
+    const timestamps = parseZennoteTimestamps(lines);
+    if (timestamps) {
+      draft.createdAt = timestamps.createdAt;
+      draft.updatedAt = timestamps.updatedAt;
+    } else {
+      const filenameTs = parseCreatedAtFromFilename(filename);
+      if (filenameTs !== null) {
+        draft.createdAt = filenameTs;
+        draft.updatedAt = filenameTs;
+      }
+    }
+
+    return draft;
   },
 
   /** Deduplicate notes by content hash */

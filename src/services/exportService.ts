@@ -84,6 +84,8 @@ export const ExportService = {
     if (note.updatedAt !== note.createdAt) {
       lines.push(`*最後修改: ${ExportService._formatDisplay(note.updatedAt)}*`);
     }
+    // Machine-readable timestamps for round-trip import (not visible in rendered Markdown)
+    lines.push(`<!-- zennote:createdAt=${note.createdAt} updatedAt=${note.updatedAt} -->`);
 
     return lines.join('\n');
   },

@@ -40,6 +40,9 @@ export function ImportPanel() {
               draft.content,
               draft.tags ?? []
             );
+            // Restore original timestamps if available (from ZenNote export metadata)
+            if (draft.createdAt) note.createdAt = draft.createdAt;
+            if (draft.updatedAt) note.updatedAt = draft.updatedAt;
             // Include images from the draft
             if (draft.images && draft.images.length > 0) {
               note.images = draft.images;
