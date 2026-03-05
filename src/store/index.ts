@@ -196,13 +196,29 @@ function syncTagCounts(notes: Note[]) {
     }
   });
 
-  const { tags, updateTag, deleteTag } = useTagsStore.getState();
+  const { tags, addTag, updateTag, deleteTag } = useTagsStore.getState();
+  const existingTagNames = new Set(tags.map((t) => t.name));
+
+  // Update or delete existing tags
   tags.forEach((tag) => {
     const newCount = countMap[tag.name] ?? 0;
     if (newCount === 0) {
       deleteTag(tag.id);
     } else if (tag.noteCount !== newCount) {
       updateTag(tag.id, { noteCount: newCount });
+    }
+  });
+
+  // Create new tags for tag names not yet in the store (e.g. from imported notes)
+  let orderBase = tags.length;
+  Object.entries(countMap).forEach(([tagName, count]) => {
+    if (!existingTagNames.has(tagName)) {
+      addTag({
+        id: `tag-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        name: tagName,
+        noteCount: count,
+        order: orderBase++,
+      });
     }
   });
 }
