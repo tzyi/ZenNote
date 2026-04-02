@@ -1,4 +1,4 @@
-import { Note, SearchFilter } from '../models';
+import { Note, Tag, SearchFilter } from '../models';
 
 /**
  * Search & filter service for notes.
@@ -58,10 +58,10 @@ export const SearchService = {
     });
   },
 
-  /** Fuzzy tag search */
-  searchTags(allTags: string[], query: string): string[] {
+  /** Fuzzy tag search – returns matching Tag objects filtered by name */
+  searchTags(allTags: Tag[], query: string): Tag[] {
     if (!query.trim()) return allTags;
     const q = query.toLowerCase();
-    return allTags.filter((t) => t.toLowerCase().includes(q));
+    return allTags.filter((t) => t.name.toLowerCase().includes(q));
   },
 };

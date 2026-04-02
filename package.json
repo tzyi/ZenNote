@@ -15,9 +15,6 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "postinstall": "patch-package"
   },
-  "jest": {
-    "preset": "jest-expo"
-  },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/drawer": "^7.8.1",

@@ -19,10 +19,17 @@ module.exports = {
   },
   // legacy compatibility stubs
   readAsStringAsync: jest.fn().mockResolvedValue(''),
+  writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  getInfoAsync: jest.fn().mockResolvedValue({ exists: false }),
+  makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
   EncodingType: {
     UTF8: 'utf8',
     Base64: 'base64',
   },
-  CacheDirectory: '/cache/',
-  DocumentDirectory: '/documents/',
+  cacheDirectory: '/cache/',
+  documentDirectory: '/documents/',
+  StorageAccessFramework: {
+    requestDirectoryPermissionsAsync: jest.fn().mockResolvedValue({ granted: false }),
+    createFileAsync: jest.fn().mockResolvedValue('file:///mock/path'),
+  },
 };
