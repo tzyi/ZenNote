@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Note, Tag, AppSettings, ThemeMode } from '../models';
 import { StorageService } from '../services/storageService';
+import { migrateNoteImages } from '../services/imageService';
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
 
@@ -56,7 +57,13 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   hydrated: false,
 
   hydrateNotes: async () => {
-    const notes = await StorageService.loadNotes();
+    const raw = await StorageService.loadNotes();
+    // 遷移舊版快取 URI 到永久目錄（快取清除後仍可顯示）
+    const notes = await migrateNoteImages(raw);
+    // 若有遷移發生，立即持久化更新後的 URI
+    if (notes !== raw) {
+      StorageService.saveNotes(notes);
+    }
     set({ notes, hydrated: true });
   },
 

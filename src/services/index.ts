@@ -4,3 +4,4 @@ export { ExportService } from './exportService';
 export { ImportService } from './importService';
 export { BackupService } from './backupService';
 export { SearchService } from './searchService';
+export { copyImageToPermanentStorage, migrateNoteImages } from './imageService';

@@ -15,6 +15,7 @@ import {
 // ── 使用 RN 原生 TouchableOpacity (在 GestureHandlerRootView 外) ──
 import { TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import {
   Gesture,
   GestureDetector,
@@ -27,6 +28,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useColors } from '../theme';
 import { NoteImage } from '../models';
+import { copyImageToPermanentStorage } from '../services/imageService';
 
 interface ImageUploaderProps {
   images: NoteImage[];
@@ -193,13 +195,22 @@ export function ImageUploader({
     });
 
     if (!result.canceled) {
-      const newImages: NoteImage[] = result.assets.map((asset, i) => ({
-        id: generateImageId(),
-        noteId: '',
-        uri: asset.uri,
-        order: images.length + i,
-      }));
-      onImagesChange([...images, ...newImages]);
+      try {
+        const newImages: NoteImage[] = await Promise.all(
+          result.assets.map(async (asset, i) => {
+            const permanentUri = await copyImageToPermanentStorage(asset.uri);
+            return {
+              id: generateImageId(),
+              noteId: '',
+              uri: permanentUri,
+              order: images.length + i,
+            };
+          })
+        );
+        onImagesChange([...images, ...newImages]);
+      } catch {
+        Alert.alert('錯誤', '無法儲存圖片，請重試。');
+      }
     }
   }, [images, maxImages, onImagesChange]);
 
@@ -211,10 +222,15 @@ export function ImageUploader({
           text: '刪除',
           style: 'destructive',
           onPress: () => {
+            const target = images.find((img) => img.id === imageId);
             const updated = images
               .filter((img) => img.id !== imageId)
               .map((img, idx) => ({ ...img, order: idx }));
             onImagesChange(updated);
+            // 刪除永久目錄中的實體檔案（非同步，失敗不影響 UI）
+            if (target?.uri && target.uri.includes('note_images')) {
+              FileSystem.deleteAsync(target.uri, { idempotent: true }).catch(() => {});
+            }
           },
         },
       ]);
