@@ -40,6 +40,27 @@ export const ExportService = {
     });
   },
 
+  /**
+   * Extract the first H1 heading from markdown content.
+   * Returns the heading text (without the leading `# `), or null if none found.
+   */
+  _extractH1Title(content: string): string | null {
+    const match = content.match(/^#\s+(.+)$/m);
+    return match ? match[1].trim() : null;
+  },
+
+  /**
+   * Sanitize a string so it is safe to use as a filename.
+   * Removes or replaces characters that are illegal on common filesystems.
+   */
+  _sanitizeFilename(name: string): string {
+    return name
+      .replace(/[\\/:\*\?"<>|\x00-\x1f]/g, '') // strip illegal chars
+      .replace(/\s+/g, '_')                       // spaces → underscore
+      .replace(/\.+$/, '')                        // no trailing dots
+      .slice(0, 100);                             // max 100 chars
+  },
+
   /** Get image file extension from URI, defaulting to .jpg */
   _getImageExtension(uri: string): string {
     const cleanUri = uri.split('?')[0]?.split('#')[0] ?? uri;
@@ -132,7 +153,13 @@ export const ExportService = {
         const fileDatetime = ExportService._formatFilenameDatetime(note.createdAt);
         const idParts = note.id.split('-');
         const shortId = idParts.length >= 3 ? idParts.slice(2).join('-') : note.id.slice(-8);
-        const filename = `note_${fileDatetime}_${shortId}.md`;
+
+        // Use H1 title as filename when available, else fall back to datetime
+        const h1Title = ExportService._extractH1Title(note.content);
+        const baseName = h1Title
+          ? ExportService._sanitizeFilename(h1Title) || fileDatetime
+          : fileDatetime;
+        const filename = `${baseName}.md`;
 
         const noteImageMeta: { zipPath: string; id: string; order: number }[] = [];
         const imageZipPaths: string[] = [];
